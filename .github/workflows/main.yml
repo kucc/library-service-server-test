@@ -28,7 +28,7 @@ jobs:
         uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key:  ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: "<PROJECT-NAME>"
-          heroku_email: "<EMAIL-ADDRESS>"
-          healthcheck: "https://<PROJECT-NAME>.herokuapp.com/healthcheck"
+          heroku_app_name: "library-service-server-testlib"
+          heroku_email: "mjkweon17@korea.ac.kr"
+          healthcheck: "https://library-service-server-testlib.herokuapp.com/healthcheck"
           rollbackonhealthcheckfailed: true
