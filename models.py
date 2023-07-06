@@ -1,8 +1,11 @@
-from sqlalchemy import Column, Text, Integer,Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL
-from sqlalchemy import UniqueConstraint, ColumnDefault, text, func
+from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger
+from sqlalchemy import text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
+
+UnsignedInt = Integer()
+UnsignedInt = UnsignedInt.with_variant(Integer(unsigned=True), 'mysql')
 
 class User(Base):
     __tablename__ = "user"
@@ -11,7 +14,6 @@ class User(Base):
     status = Column(Boolean, nullable=False)
     email = Column(String(100), nullable=False)
     valid = Column(Boolean, nullable=False, default=0)
-    status = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
@@ -29,115 +31,104 @@ class Setting(Base):
 
 class Admin(Base):
     __tablename__ = 'admin'
-    admin_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, nullable=False)
-    admin_status = Column(Boolean, nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
-
-class Book_review(Base):
-    __tablename__ = 'book_review'
-    review_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, nullable=False)
-    book_info_id = Column(Integer, nullable=False)
-    review_content = Column(String(1000), nullable=False)
-    rating = Column(DECIMAL(3,2), nullable=False)
-    valid = Column(Boolean, nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
-
-class Donor(Base):
-    __tablename__ = 'donor'
-    donor_id = Column(Integer, primary_key=True)
-    donor_name = Column(String(20), nullable=False)
-
-class Book_request(Base):
-    __tablename__ = 'book_request'
-    book_request_id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, nullable=False)
-    book_title = Column(String(100), nullable=False)
-    author = Column(String(100), nullable=False)
-    publication_year = Column(Integer, nullable=False)
-    publisher = Column(String(100), nullable=False)
-    version = Column(String(100), nullable=False)
-    major = Column(Boolean, nullable=False)
-    request_link = Column(String(100), nullable=False)
-    reason = Column(String(1000), nullable=False)
-    like_count = Column(Integer, nullable=False)
-    price = Column(Integer, nullable=False)
-    processing_status = Column(Boolean, nullable=False)
-    request_date = Column(DateTime, nullable=False)
-    valid = Column(Boolean, nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
-
-class Reservation(Base):
-    __tablename__ = 'reservation'
-    reservation_id = Column(Integer, primary_key=True)
-    book_id = Column(Integer, nullable=False)
-    user_id = Column(Integer, nullable=False)
-    reservation_date = Column(DateTime, nullable=False)
-    reservation_status = Column(Integer, nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
+    admin_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
+    admin_status = Column(SmallInteger, nullable=False, default=0)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
 class Book(Base):
     __tablename__ = 'Book'
-    book_id = Column(Integer, primary_key=True)
-    book_info_id = Column(Integer, nullable=False)
-    donor_id = Column(Integer, nullable=False)
-    book_status = Column(Integer, nullable=False)
-    note = Column(String(1000), nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
-    valid = Column(Boolean, nullable=False)
+    book_id = Column(Integer, primary_key=True, autoincremnet=True, nullable=False)
+    book_info_id = Column(Integer, ForeignKey("book_info.book_info_id"), nullable=False)
+    donor_id = Column(Integer, ForeignKey("donor.donor.id"), nullable=False)
+    book_status = Column(SmallInteger, nullable=False, default=0)
+    note = Column(String(255))
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+    valid = Column(Boolean, nullable=False, default=0)
 
-class Book_info(Base):
+class BookInfo(Base):
     __tablename__ = 'book_info'
-    book_info_id = Column(Integer, primary_key=True)
-    title = Column(String(100), nullable=False)
-    subtitle = Column(String(100), nullable=False)
+    book_info_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    title = Column(String(255), nullable=False)
+    subtitle = Column(String(255), nullable=False)
     author = Column(String(100), nullable=False)
-    publisher = Column(String(100), nullable=False)
-    publication_year = Column(Integer, nullable=False)
-    image_url = Column(String(100), nullable=False)
-    category_id = Column(Integer, nullable=False)
-    copied = Column(String(100), nullable=False)
+    publisher = Column(String(45), nullable=False)
+    publication_year = Column(Date, nullable=False)
+    image_url = Column(Text, nullable=False)
+    category_id = Column(Integer, ForeignKey("category.category_id"), nullable=False)
     version = Column(String(100), nullable=False)
-    major = Column(Boolean, nullable=False)
-    language = Column(String(100), nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
-    valid = Column(Boolean, nullable=False)
+    copied = Column(Boolean, nullable=False, default=0)
+    major = Column(Boolean, nullable=False, default=0)
+    language = Column(String(10), nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+    valid = Column(Boolean, nullable=False, default=0)
 
-class Ntice(Base):
+class BookReview(Base):
+    __tablename__ = 'book_review'
+    review_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    user_id = Column(Integer,  ForeignKey("user.user_id"), nullable=False)
+    book_info_id = Column(Integer, ForeignKey("book_info.book_info_id"), nullable=False)
+    review_content = Column(String(1000), nullable=False)
+    rating = Column(DECIMAL(3, 2), nullable=False, default=0.00)
+    valid = Column(Boolean, nullable=False, default=0)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+
+class Donor(Base):
+    __tablename__ = 'donor'
+    donor_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    donor_name = Column(String(20), nullable=False)
+
+class BookRequest(Base):
+    __tablename__ = 'book_request'
+    book_request_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
+    book_title = Column(String(255), nullable=False)
+    author = Column(String(100), nullable=False)
+    publication_year = Column(Integer, nullable=False)
+    publisher = Column(String(100), nullable=False)
+    version = Column(String(100))
+    major = Column(Boolean, default=0)
+    request_link = Column(Text)
+    reason = Column(Text, nullable=False)
+    like_count = Column(Integer, default=0)
+    price = Column(UnsignedInt, nullable=False)
+    processing_status = Column(SmallInteger, nullable=False, default=0)
+    request_date = Column(DateTime, nullable=False)
+    valid = Column(Boolean, nullable=False, default=0)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+
+class Notice(Base):
     __tablename__ = 'notice'
-    notice_id = Column(Integer, primary_key=True)
-    author_id = Column(Integer, nullable=False)
-    title = Column(String(100), nullable=False)
-    notice_content = Column(String(1000), nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
-    valid = Column(Boolean, nullable=False)
-    admin_id = Column(Integer, nullable=False)
+    notice_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    author_id = Column(Integer, ForeignKey("admin.admin_id"), nullable=False)
+    title = Column(String(255), nullable=False)
+    notice_content = Column(Text, nullable=False)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+    valid = Column(Boolean, nullable=False, default=0)
 
 class Loan(Base):
     __tablename__ = 'loan'
-    loan_id = Column(Integer, primary_key=True)
-    book_id = Column(Integer, nullable=False)
-    user_id = Column(Integer, nullable=False)
+    loan_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    book_id = Column(Integer, ForeignKey("book.book_id"), nullable=False)
+    user_id = Column(Integer,  ForeignKey("user.user_id"), nullable=False)
     loan_date = Column(DateTime, nullable=False)
-    extend_status = Column(Boolean, nullable=False)
+    extend_status = Column(Boolean, nullable=False, default=0)
     expected_return_date = Column(DateTime, nullable=False)
-    return_status = Column(Boolean, nullable=False)
+    return_status = Column(Boolean, nullable=False, default=0)
     return_date = Column(DateTime, nullable=False)
-    delay_days = Column(Integer, nullable=False)
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
+    delay_days = Column(UnsignedInt, nullable=False, default=0)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
 class Category(Base):
     __tablename__ = 'category'
-    category_id = Column(Integer, primary_key=True)
-    category_code = Column(String(100), nullable=False)
-    category_name = Column(String(100), nullable=False)
-    valid = Column(Boolean, nullable=False)
+    category_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
+    category_code = Column(String(5), nullable=False)
+    category_name = Column(String(30), nullable=False)
+    valid = Column(Boolean, nullable=False, default=0)
