@@ -1,7 +1,13 @@
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://user:password@host:3306/db"
+db_host = settings.DB_HOST
+db_port = settings.DB_PORT
+db_user = settings.DB_USER
+db_password = settings.DB_PASSWORD
+db_db = settings.DB_DB
+
+SQLALCHEMY_DATABASE_URL = "mysql+pymysql://" + db_user + ":" + db_password + "@" + db_host + ":" + str(db_port) + "/" + db_db
 
 class Engineconn:
     def __init__(self):
