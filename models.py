@@ -1,16 +1,17 @@
-from sqlalchemy import Column, TEXT, INT, BOOLEAN, String, TIMESTAMP, UniqueConstraint, ColumnDefault, text, func
+from sqlalchemy import Column, Text, Integer,Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL
+from sqlalchemy import UniqueConstraint, ColumnDefault, text, func
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
 class User(Base):
     __tablename__ = "user"
-    user_id = Column(INT, nullable=False, autoincrement=True, primary_key=True)
+    user_id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
     user_name = Column(String(45), nullable=False, unique=True)
-    status = Column(BOOLEAN, nullable=False)
+    status = Column(Boolean, nullable=False)
     email = Column(String(100), nullable=False)
-    valid = Column(BOOLEAN, nullable=False, default=0)
-    status = Column(BOOLEAN, nullable=False, default=1)
+    valid = Column(Boolean, nullable=False, default=0)
+    status = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
@@ -30,7 +31,7 @@ class Admin(Base):
     __tablename__ = 'admin'
     admin_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=False)
-    admin_status = Column(Bool, nullable=False)
+    admin_status = Column(Boolean, nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
 
@@ -40,8 +41,8 @@ class Book_review(Base):
     user_id = Column(Integer, nullable=False)
     book_info_id = Column(Integer, nullable=False)
     review_content = Column(String(1000), nullable=False)
-    rating = Column(decimal(3,2), nullable=False)
-    valid = Column(Bool, nullable=False)
+    rating = Column(DECIMAL(3,2), nullable=False)
+    valid = Column(Boolean, nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
 
@@ -59,14 +60,14 @@ class Book_request(Base):
     publication_year = Column(Integer, nullable=False)
     publisher = Column(String(100), nullable=False)
     version = Column(String(100), nullable=False)
-    major = Column(Bool, nullable=False)
+    major = Column(Boolean, nullable=False)
     request_link = Column(String(100), nullable=False)
     reason = Column(String(1000), nullable=False)
     like_count = Column(Integer, nullable=False)
     price = Column(Integer, nullable=False)
-    processing_status = Column(Bool, nullable=False)
+    processing_status = Column(Boolean, nullable=False)
     request_date = Column(DateTime, nullable=False)
-    valid = Column(Bool, nullable=False)
+    valid = Column(Boolean, nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
 
@@ -89,7 +90,7 @@ class Book(Base):
     note = Column(String(1000), nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
-    valid = Column(Bool, nullable=False)
+    valid = Column(Boolean, nullable=False)
 
 class Book_info(Base):
     __tablename__ = 'book_info'
@@ -103,11 +104,11 @@ class Book_info(Base):
     category_id = Column(Integer, nullable=False)
     copied = Column(String(100), nullable=False)
     version = Column(String(100), nullable=False)
-    major = Column(Bool, nullable=False)
+    major = Column(Boolean, nullable=False)
     language = Column(String(100), nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
-    valid = Column(Bool, nullable=False)
+    valid = Column(Boolean, nullable=False)
 
 class Ntice(Base):
     __tablename__ = 'notice'
@@ -117,7 +118,7 @@ class Ntice(Base):
     notice_content = Column(String(1000), nullable=False)
     created_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, nullable=False)
-    valid = Column(Bool, nullable=False)
+    valid = Column(Boolean, nullable=False)
     admin_id = Column(Integer, nullable=False)
 
 class Loan(Base):
@@ -126,9 +127,9 @@ class Loan(Base):
     book_id = Column(Integer, nullable=False)
     user_id = Column(Integer, nullable=False)
     loan_date = Column(DateTime, nullable=False)
-    extend_status = Column(Bool, nullable=False)
+    extend_status = Column(Boolean, nullable=False)
     expected_return_date = Column(DateTime, nullable=False)
-    return_status = Column(Bool, nullable=False)
+    return_status = Column(Boolean, nullable=False)
     return_date = Column(DateTime, nullable=False)
     delay_days = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False)
@@ -139,4 +140,4 @@ class Category(Base):
     category_id = Column(Integer, primary_key=True)
     category_code = Column(String(100), nullable=False)
     category_name = Column(String(100), nullable=False)
-    valid = Column(Bool, nullable=False)
+    valid = Column(Boolean, nullable=False)
