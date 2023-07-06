@@ -12,5 +12,5 @@ class User(Base):
     email = Column(String(100), nullable=False)
     valid = Column(BOOLEAN, nullable=False, default=0)
     status = Column(BOOLEAN, nullable=False, default=1)
-    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
