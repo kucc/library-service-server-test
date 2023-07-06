@@ -1,3 +1,5 @@
+#uvicorn app:app --reload
+
 from fastapi import FastAPI, Depends, Path, HTTPException
 from pydantic import BaseModel
 from database import Engineconn
