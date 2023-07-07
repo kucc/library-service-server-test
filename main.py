@@ -13,7 +13,7 @@ router = APIRouter()
 ## root
 @app.get("/")
 async def root():
-    result = {'id': 1}
+    result = {'greet': "hello kucc"}
     return result
 
 # /users 경로에 대한 핸들러 함수
