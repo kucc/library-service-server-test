@@ -1,11 +1,12 @@
 from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger
+from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy import text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-UnsignedInt = Integer()
-UnsignedInt = UnsignedInt.with_variant(Integer(unsigned=True), 'mysql')
+UnsignedInt = INTEGER()
+UnsignedInt = UnsignedInt.with_variant(INTEGER(unsigned=True), 'mysql')
 
 class User(Base):
     __tablename__ = "user"
@@ -39,14 +40,14 @@ class Admin(Base):
 
 class Book(Base):
     __tablename__ = 'Book'
-    book_id = Column(Integer, primary_key=True, autoincremnet=True, nullable=False)
+    book_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     book_info_id = Column(Integer, ForeignKey("book_info.book_info_id"), nullable=False)
     donor_id = Column(Integer, ForeignKey("donor.donor.id"), nullable=False)
     book_status = Column(SmallInteger, nullable=False, default=0)
     note = Column(String(255))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
-    valid = Column(Boolean, nullable=False, default=0)
+    valid = Column(Boolean, nullable=False, default=1)
 
 class BookInfo(Base):
     __tablename__ = 'book_info'
@@ -64,7 +65,7 @@ class BookInfo(Base):
     language = Column(String(10), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
-    valid = Column(Boolean, nullable=False, default=0)
+    valid = Column(Boolean, nullable=False, default=1)
 
 class BookReview(Base):
     __tablename__ = 'book_review'
@@ -73,7 +74,7 @@ class BookReview(Base):
     book_info_id = Column(Integer, ForeignKey("book_info.book_info_id"), nullable=False)
     review_content = Column(String(1000), nullable=False)
     rating = Column(DECIMAL(3, 2), nullable=False, default=0.00)
-    valid = Column(Boolean, nullable=False, default=0)
+    valid = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
@@ -98,7 +99,7 @@ class BookRequest(Base):
     price = Column(UnsignedInt, nullable=False)
     processing_status = Column(SmallInteger, nullable=False, default=0)
     request_date = Column(DateTime, nullable=False)
-    valid = Column(Boolean, nullable=False, default=0)
+    valid = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
@@ -110,7 +111,7 @@ class Notice(Base):
     notice_content = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
-    valid = Column(Boolean, nullable=False, default=0)
+    valid = Column(Boolean, nullable=False, default=1)
 
 class Loan(Base):
     __tablename__ = 'loan'
@@ -131,4 +132,4 @@ class Category(Base):
     category_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     category_code = Column(String(5), nullable=False)
     category_name = Column(String(30), nullable=False)
-    valid = Column(Boolean, nullable=False, default=0)
+    valid = Column(Boolean, nullable=False, default=1)
