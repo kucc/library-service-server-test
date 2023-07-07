@@ -21,6 +21,8 @@ venv
 docs.zip
 archive.zip
 config.py
+migrations
+alembic.ini
 
 # vim temporary files
 *~
