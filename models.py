@@ -39,7 +39,7 @@ class Admin(Base):
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
 class Book(Base):
-    __tablename__ = 'Book'
+    __tablename__ = 'book'
     book_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     book_info_id = Column(Integer, ForeignKey("book_info.book_info_id"), nullable=False)
     donor_id = Column(Integer, ForeignKey("donor.donor.id"), nullable=False)
