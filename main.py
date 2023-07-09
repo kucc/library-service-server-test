@@ -1,14 +1,17 @@
 #  RUN ::
 #  uvicorn main:app --reload
-from fastapi import FastAPI, Depends, Path, HTTPException, APIRouter
-from database import Engineconn
-from models import *
+from fastapi import FastAPI, Depends, Path, HTTPException
 
 app = FastAPI()
 
-engine = Engineconn()
-session = engine.sessionmaker()
-router = APIRouter()
+## 절대 경로로 변환 필요
+from .routers import users, books, about
+from .internal import admins
+
+app.include_router(users.router)
+app.include_router(books.router)
+app.include_router(about.router)
+app.include_router(admins.router)
 
 ## root
 @app.get("/")
@@ -16,43 +19,10 @@ async def root():
     result = {'greet': "hello kucc"}
     return result
 
-# /users 경로에 대한 핸들러 함수
-@router.get("/users")
-def get_users():
-    users_info = session.query(User).all()
-    if users_info:
-        return users_info
-
-@router.get("/users/{user_id}")
-def get_user(user_id: int):
-    user_info = session.query(User).filter(User.user_id == user_id).first()
-    if user_info: return user_info
-
-# /books 경로에 대한 핸들러 함수
-@router.get("/books")
-def get_books():
-    books_info = session.query(Book).all()
-    if books_info:
-        return books_info
-
-# /about/notice 경로에 대한 핸들러 함수
-@router.get("/about/notice")
-def get_notice():
-    notice_info = session.query(Notice).all()
-    if notice_info:
-        return notice_info
+# @router.post("/auth/login")
+# @router.post("user")
 
 # /search 경로에 대한 핸들러 함수
-@router.get("/search")
-def get_search():
+@app.get("/search")
+async def get_search():
     return {'message' : "search"}
-
-# /admins 경로에 대한 핸들러 함수
-@router.get("/admins")
-def get_admins():
-    admin_info = session.query(Admin).all()
-    if admin_info:
-        return admin_info
-
-
-app.include_router(router)
