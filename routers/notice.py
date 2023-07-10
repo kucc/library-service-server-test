@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Query, status
 from typing import Optional
 from database import Engineconn
-from models import Notice, Donor
+from models import Notice, Donor  # donor table 삭제 예정 -> books
 from datetime import datetime, timedelta
 
 db = Engineconn().sessionmaker()
-router = APIRouter(prefix="/about", tags=["about"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
+router = APIRouter(prefix="/notice", tags=["about"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
 
 ## about handler
-# /about/notice 경로에 대한 핸들러 함수
-@router.get("/notice")
+# /notice 경로에 대한 핸들러 함수
+@router.get("/")
 def get_notices(
     author: Optional[int] = None,
     title: Optional[str] = None,
@@ -48,7 +48,7 @@ def get_notices(
                 "message": "Invalid begin_date format. It should be in YYYY-MM-DD format.",
             }
     else:
-        begin_date = datetime.today() - timedelta(days=30)
+        begin_date = datetime.today() - timedelta(days=60)
     query = query.filter(Notice.updated_at >= begin_date)
 
     # Parse end_date parameter
@@ -79,7 +79,7 @@ def get_notices(
             "result" : []
         }
 
-@router.get("/notice/{notice_id}")
+@router.get("/{notice_id}")
 def get_notice(notice_id : int):
     query = db.query(Notice)
     notice = query().filter(Notice.notice_id == notice_id)
@@ -89,11 +89,4 @@ def get_notice(notice_id : int):
             "message": "success to get notice",
             "result": notice
         }
-
-@router.get("/donor")
-def get_donors():
-    query = db.query(Donor)
-    donor_info = query.all()
-    if donor_info:
-        return donor_info
 
