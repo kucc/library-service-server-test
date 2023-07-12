@@ -10,6 +10,7 @@ session = engine.sessionmaker()
 router = APIRouter(prefix="/books", tags=["books"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
 
 # /books 경로에 대한 핸들러 함수 (전체 도서 정보 조회)
+@router.get("")
 @router.get("/")
 def get_books(
     author: Optional[int] = None,
@@ -108,6 +109,7 @@ def get_books(
 
 # 개별 도서 정보 조회
 @router.get("/{book_info_id}")
+@router.get("/{book_info_id}/")
 def get_book(
     book_info_id: int
     ):
@@ -124,8 +126,9 @@ def get_book(
             "code": status.HTTP_404_NOT_FOUND,
             "message": "Fail to get book information"
         }
-
+    
 @router.get("/{book_info_id}/book-holding")
+@router.get("/{book_info_id}/book-holding/")
 def get_book_holding(
     book_info_id: int
     ):
@@ -140,5 +143,5 @@ def get_book_holding(
         return {
             "code": status.HTTP_204_NOT_FOUND,
             "message": "Fail to get book holding information",
-            "result": book_holding
+            "result": []
         }
