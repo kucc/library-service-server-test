@@ -1,15 +1,15 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, status
 from typing import Optional
 from database import Engineconn
-from models import Notice, Donor  # donor table 삭제 예정 -> books
+from models import Notice
 from datetime import datetime, timedelta
 
 db = Engineconn().sessionmaker()
-router = APIRouter(prefix="/notice", tags=["about"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
+router = APIRouter(prefix="/notices", tags=["notices"], responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
 
-## about handler
+# about handler
 # /notice 경로에 대한 핸들러 함수
-@router.get("/")
+@router.get("")
 def get_notices(
     author: Optional[int] = None,
     title: Optional[str] = None,
@@ -39,20 +39,26 @@ def get_notices(
         query = query.filter(Notice.title.contains(title))
 
     # Parse begin_date parameter
-    if get_begin:
+    if get_begin is not None:
         try:
             begin_date = datetime.strptime(get_begin, "%Y-%m-%d")
         except ValueError:
             return {
                 "code": status.HTTP_400_BAD_REQUEST,
-                "message": "Invalid begin_date format. It should be in YYYY-MM-DD format.",
+                "message": "Invalid begin_date format. It should be in YY-MM-DD format.",
+            }
+        if begin_date > datetime.now():
+            return {
+                "code": status.HTTP_400_BAD_REQUEST,
+                "message": "Invalid begin_date. It cannot be in the future.",
             }
     else:
-        begin_date = datetime.today() - timedelta(days=60)
+        begin_date = datetime.now() - timedelta(days=60)
+
     query = query.filter(Notice.updated_at >= begin_date)
 
     # Parse end_date parameter
-    if get_end:
+    if get_end is not None:
         try:
             end_date = datetime.strptime(get_end, "%Y-%m-%d")
         except ValueError:
@@ -61,32 +67,40 @@ def get_notices(
                 "message": "Invalid end_date format. It should be in YYYY-MM-DD format.",
             }
     else:
-        end_date = datetime.today()
+        end_date = datetime.now()
+
     query = query.filter(Notice.updated_at <= end_date)
 
     notices = query.all()
 
-    if notices:
+    if notices is None or not notices:
+        return {
+            "code" :status.HTTP_204_NO_CONTENT,
+            "message" : "In the request was successfully processed, but there is no content to return.",
+            "result" : [],
+        }
+    else :
         return {
             "code": status.HTTP_200_OK,
             "message": "success to get notice",
             "result": notices,
         }
-    else :
-        return {
-            "code" :status.HTTP_204_NO_CONTENT,
-            "message" : "In the request was successfully processed, but there is no content to return.",
-            "result" : []
-        }
 
 @router.get("/{notice_id}")
 def get_notice(notice_id : int):
     query = db.query(Notice)
-    notice = query().filter(Notice.notice_id == notice_id)
-    if notice:
+    notice = query.filter(Notice.notice_id == notice_id).one()
+
+    if notice :
         return {
             "code": status.HTTP_200_OK,
             "message": "success to get notice",
             "result": notice
+        }
+    else:
+        return {
+            "code": status.HTTP_204_NO_CONTENT,
+            "message": "In the request was successfully processed, but there is no content to return.",
+            "result": []
         }
 

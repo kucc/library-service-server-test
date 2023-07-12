@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from database import Engineconn
-from models import *
+from models import Book, Donor, BookInfo, BookReview, BookRequest
 
 engine = Engineconn()
 session = engine.sessionmaker()
