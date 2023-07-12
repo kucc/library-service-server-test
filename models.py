@@ -42,7 +42,7 @@ class Book(Base):
     __tablename__ = 'book'
     book_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     book_info_id = Column(Integer, ForeignKey("book_info.book_info_id"), nullable=False)
-    donor_id = Column(Integer, ForeignKey("donor.donor.id"), nullable=False)
+    donor_name = Column(String(30))
     book_status = Column(SmallInteger, nullable=False, default=0)
     note = Column(String(255))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
@@ -78,25 +78,16 @@ class BookReview(Base):
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
-class Donor(Base):
-    __tablename__ = 'donor'
-    donor_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    donor_name = Column(String(20), nullable=False)
-
 class BookRequest(Base):
     __tablename__ = 'book_request'
     book_request_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
     book_title = Column(String(255), nullable=False)
-    author = Column(String(100), nullable=False)
-    publication_year = Column(Integer, nullable=False)
-    publisher = Column(String(100), nullable=False)
-    version = Column(String(100))
-    major = Column(Boolean, default=0)
-    request_link = Column(Text)
+    author = Column(String(100))
+    publication_year = Column(Integer)
+    publisher = Column(String(100))
+    request_link = Column(Text, nullable=False)
     reason = Column(Text, nullable=False)
-    like_count = Column(Integer, default=0)
-    price = Column(UnsignedInt, nullable=False)
     processing_status = Column(SmallInteger, nullable=False, default=0)
     request_date = Column(DateTime, nullable=False)
     valid = Column(Boolean, nullable=False, default=1)
