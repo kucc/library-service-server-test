@@ -1,4 +1,3 @@
-#
 from fastapi import APIRouter, Query, status
 from typing import Optional
 from database import Engineconn
@@ -11,7 +10,6 @@ router = APIRouter(prefix="/books", tags=["books"],responses={201 : {"descriptio
 
 # /books 경로에 대한 핸들러 함수 (전체 도서 정보 조회)
 @router.get("")
-@router.get("/")
 def get_books(
     author: Optional[int] = None,
     publication_year: Optional[int] = None,
@@ -102,14 +100,13 @@ def get_books(
         }
     else:
         return {
-            "code": status.HTTP_204_NOT_FOUND,
+            "code": status.HTTP_204_NO_CONTENT,
             "message": "Fail to get book information",
             "result": []
         }
 
 # 개별 도서 정보 조회
 @router.get("/{book_info_id}")
-@router.get("/{book_info_id}/")
 def get_book(
     book_info_id: int
     ):
@@ -123,12 +120,12 @@ def get_book(
         }
     else:
         return {
-            "code": status.HTTP_404_NOT_FOUND,
+            "code": status.HTTP_204_NO_CONTENT,
             "message": "Fail to get book information"
         }
-    
-@router.get("/{book_info_id}/book-holding")
-@router.get("/{book_info_id}/book-holding/")
+
+# 소장 정보 목록 조회
+@router.get("/book-holdings")
 def get_book_holding(
     book_info_id: int
     ):
@@ -141,7 +138,11 @@ def get_book_holding(
         }
     else:
         return {
-            "code": status.HTTP_204_NOT_FOUND,
+            "code": status.HTTP_204_NO_CONTENT,
             "message": "Fail to get book holding information",
             "result": []
         }
+
+# 전체 개별 소장 정보 목록 조회
+@router.get("/book-info")
+def get_book_info():
