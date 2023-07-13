@@ -72,7 +72,7 @@ class BookReview(Base):
     review_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = Column(Integer,  ForeignKey("user.user_id"), nullable=False)
     book_info_id = Column(Integer, ForeignKey("book_info.book_info_id"), nullable=False)
-    review_content = Column(String(1000), nullable=False)
+    review_content = Column(Text, nullable=False)
     rating = Column(DECIMAL(3, 2), nullable=False, default=0.00)
     valid = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
