@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, status, HTTPException
 from typing import Optional
 from database import Engineconn
 from models import Book, BookInfo, BookReview, BookRequest
@@ -12,10 +12,10 @@ router = APIRouter(prefix="/books", tags=["books"],responses={201 : {"descriptio
 
 # /books 경로에 대한 핸들러 함수 (전체 도서 정보 조회)
 @router.get("")
-def get_books(
+def get_book_list(
     author: Optional[str] = None,
     publication_year: Optional[int] = None,
-    category_id: Optional[int] = None,
+    category: Optional[int] = None,
     publisher: Optional[str] = None,
     title: Optional[str] = None,
     major: Optional[bool] = None,
@@ -30,12 +30,12 @@ def get_books(
             "code": status.HTTP_400_BAD_REQUEST,
             "message": "Invalid author name"
         }
-    if publication_year is not None and not isinstance(publication_year, str):
+    if publication_year is not None and not isinstance(publication_year, int):
         return {
             "code": status.HTTP_400_BAD_REQUEST,
             "message": "Invalid author name"
         }
-    if category_id is not None and not isinstance(category_id, int):
+    if category is not None and not isinstance(category, int):
         return {
             "code": status.HTTP_400_BAD_REQUEST,
             "message": "Invalid category id"
@@ -62,8 +62,8 @@ def get_books(
         query = query.filter(BookInfo.author.contains(author))
     if publication_year:
         query = query.filter(BookInfo.publication_year == publication_year)
-    if category_id:
-        query = query.filter(BookInfo.category_id == category_id)
+    if category:
+        query = query.filter(BookInfo.category_id == category)
     if publisher:
         query = query.filter(BookInfo.publisher == publisher)
     if title:
@@ -80,7 +80,6 @@ def get_books(
                 "code": status.HTTP_400_BAD_REQUEST,
                 "message": "Invalid begin_date format. It should be in YYYY-MM-DD format."
             }
-
     if get_end:
         try:
             end_date = datetime.strptime(get_end, "%Y-%m-%d")
@@ -92,20 +91,20 @@ def get_books(
             }
     
     #---------------------딕셔너리(결과값) 반환---------------------------
-    books_info = query.all()
+    book_info_list = query.all()
     
-    if books_info is None:
+    if book_info_list is None:
         return {
-            "code": status.HTTP_204_NO_CONTENT,
+            "code": status.HTTP_404_NOT_FOUND,
             "message": "In the request was successfully processed, but there is NoneType object.",
             "result": []
         }
     else:
-        if books_info:
+        if book_info_list:
             return {
                 "code": status.HTTP_200_OK,
                 "message": "Success to get book information",
-                "result": books_info
+                "result": book_info_list
             }
         else:
             return {
@@ -116,37 +115,33 @@ def get_books(
 
 
 # 개별 도서 정보 조회
-@router.get("/{book_info_id}")
+@router.get("/book-info/{book_info_id}")
+# /{book_info_id}로 요청할 시 422 Unprocessable Entity 오류 발생하여 컨테이너 수정함 - 20230715
 def get_book(
     book_info_id: int
     ):
-    book_info = session.query(BookInfo).filter(BookInfo.book_info_id == book_info_id).one()
-    if book_info is None:
+    try:
+        book_info = session.query(BookInfo).filter(BookInfo.book_info_id == book_info_id).one()
+    except TypeError:
+        raise HTTPException(status_code=400, detail="Bad request: book information ID must be integer")
+    except: # NotImplementedError 또는 sqlalchemy.exc.NoResultFound - 20230715
+        raise HTTPException(status_code=404, detail="Item not found in BookInfo")
+    
+    if book_info:
         return {
-            "code": status.HTTP_204_NO_CONTENT,
-            "message": "In the request was successfully processed, but there is NoneType object.",
-            "result": []
+            "code": status.HTTP_200_OK,
+            "message": "Success to get book information",
+            "result": book_info
         }
-    else:
-        if book_info:
-            return {
-                "code": status.HTTP_200_OK,
-                "message": "Success to get book information",
-                "result": book_info
-            }
-        else:
-            return {
-                "code": status.HTTP_204_NO_CONTENT,
-                "message": "Fail to get book information"
-            }
 
 
 # 전체 소장 정보 목록 조회
 @router.get("/book-holdings")
-def get_book_holdings_all(
+def get_book_holding_list(
         book_info_id: Optional[int] = None,
         donor_name: Optional[str] = None,
         book_status: Optional[int] = None,
+        #note: Optional[str] = None,
 
         get_begin: Optional[str] = None,
         get_end: Optional[str] = None
@@ -168,7 +163,13 @@ def get_book_holdings_all(
             "code": status.HTTP_400_BAD_REQUEST,
             "message": "Invalid book status"
         }
-
+    '''
+    if note is not None and not isinstance(note, str):
+        return {
+            "code": status.HTTP_400_BAD_REQUEST,
+            "message": "Invalid note"
+        }
+    '''
     #---------------------Query Parameter를 통한 필터링!---------------------------
     query = session.query(Book)
     if book_info_id:
@@ -177,6 +178,8 @@ def get_book_holdings_all(
         query = query.filter(Book.donor_name.contatins(donor_name))
     if book_status:
         query = query.filter(Book.book_status == book_status)
+    #if note:
+    #    query = query.filter(Book.note.contains(note))
     
     if get_begin:
         try:
@@ -187,7 +190,6 @@ def get_book_holdings_all(
                 "code": status.HTTP_400_BAD_REQUEST,
                 "message": "Invalid begin_date format. It should be in YYYY-MM-DD format."
             }
-
     if get_end:
         try:
             end_date = datetime.strptime(get_end, "%Y-%m-%d")
@@ -199,76 +201,113 @@ def get_book_holdings_all(
             }
     
     #---------------------딕셔너리(결과값) 반환---------------------------
-    book_holdings_all = query.all()
-    if book_holdings_all is None:
+    book_holding_list = query.all()
+    if book_holding_list is None:
         return {
-            "code": status.HTTP_204_NO_CONTENT,
+            "code": status.HTTP_404_NOT_FOUND,
             "message": "In the request was successfully processed, but there is NoneType object.",
             "result": []
         }
     else:
-        if book_holdings_all:
+        if book_holding_list:
             return {
                 "code": status.HTTP_200_OK,
-                "message": "Success to get whole book-holding informations",
-                "result": book_holdings_all
+                "message": "Success to get whole book-holding information list",
+                "result": book_holding_list
             }
         else:
             return {
                 "code": status.HTTP_204_NO_CONTENT,
-                "message": "Fail to get whole book-holding informations",
+                "message": "Fail to get whole book-holding information list",
                 "result": []
             }
 
 
 # 개별 소장 정보 목록 조회
 @router.get("/book-holdings/{book_id}")
-def get_book_holdings(book_id: int):
-    book_holdings = session.query(Book).filter(Book.book_id == book_id).one()
-    if book_holdings is None:
+def get_book_holding(
+    book_id: int
+    ):
+    try:
+        book_holding = session.query(Book).filter(Book.book_id == book_id).one()
+    except TypeError:
+        raise HTTPException(status_code=400, detail="Bad request: book ID must be integer")
+    except:
+        raise HTTPException(status_code=404, detail="Item not found in Book")
+    
+    if book_holding:
         return {
-            "code": status.HTTP_204_NO_CONTENT,
-            "message": "In the request was successfully processed, but there is NoneType object.",
-            "result": []
+            "code": status.HTTP_200_OK,
+            "message": "Success to get book-holding information",
+            "result": book_holding
         }
     else:
-        if book_holdings:
-            return {
-                "code": status.HTTP_200_OK,
-                "message": "Success to get book-holding information",
-                "result": book_holdings
-            }
-        else:
-            return {
-                "code": status.HTTP_204_NO_CONTENT,
-                "message": "Fail to get book-holding information"
-            }
+        return {
+            "code": status.HTTP_204_NO_CONTENT,
+            "message": "Fail to get book-holding information"
+        }
     
 
-# 도서 후기
+# 전체 도서 후기 조회
 @router.get("/{book_info_id}/reviews")
-def get_book_review(
+def get_book_review_list(
     book_info_id: int
     ):
-    book_reviews = session.query(BookReview).filter(BookReview.book_info_id == book_info_id).all()
-    if book_reviews is None:
+    try:
+        book_review_list = session.query(BookReview).filter(BookReview.book_info_id == book_info_id).all()
+    except TypeError:
+        raise HTTPException(status_code=400, detail="Bad request: book information ID must be integer")
+    except:
+        raise HTTPException(status_code=404, detail="Item not found in BookReview")
+    
+    if book_review_list:
         return {
-            "code": status.HTTP_204_NO_CONTENT,
-            "message": "In the request was successfully processed, but there is NoneType object.",
-            "result": []
+            "code": status.HTTP_200_OK,
+            "message": "Success to get book review list",
+            "result": book_review_list
         }
     else:
-        if book_reviews:
-            return {
-                "code": status.HTTP_200_OK,
-                "message": "Success to get book information",
-                "result": book_reviews
-            }
-        else:
-            return {
-                "code": status.HTTP_204_NO_CONTENT,
-                "message": "Fail to get book information"
-            }
-        
+        return {
+            "code": status.HTTP_204_NO_CONTENT,
+            "message": "Fail to get book review list"
+        }
 
-#
+
+# 개별 도서 후기 조회
+@router.get("/{book_info_id}/reviews/{review_id}")
+def get_book_review(
+    book_info_id: int,
+    review_id: int
+    ):
+    try:
+        book_review = session.query(BookReview).filter(BookReview.book_info_id == book_info_id).all()
+    except TypeError:
+        raise HTTPException(status_code=400, detail="Bad request: book information ID must be integer")
+    except:
+        raise HTTPException(status_code=404, detail="Item not found in BookReview")
+    
+    try:
+        book_review = book_review.filter(BookReview.review_id == review_id).one()
+    except TypeError:
+        raise HTTPException(status_code=400, detail="Bad request: review ID must be integer")
+    except:
+        raise HTTPException(status_code=404, detail="Item not found in BookReview")
+    
+    if book_review:
+        return {
+            "code": status.HTTP_200_OK,
+            "message": "Success to get book review",
+            "result": book_review
+        }
+    else:
+        return {
+            "code": status.HTTP_204_NO_CONTENT,
+            "message": "Fail to get book review"
+        }
+
+'''
+# 신착 도서 조회
+@router.get("/new-arrival")
+def get_new_book_list():
+    new_book_list = session.query()
+'''
