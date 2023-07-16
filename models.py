@@ -3,6 +3,8 @@ from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy import text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
+from sqlalchemy.orm import relationship
+
 Base = declarative_base()
 
 UnsignedInt = INTEGER()
@@ -12,9 +14,9 @@ class User(Base):
     __tablename__ = "user"
     user_id = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
     user_name = Column(String(45), nullable=False, unique=True)
-    status = Column(Boolean, nullable=False)
+    status = Column(Boolean, nullable=False, default=True)
     email = Column(String(100), nullable=False)
-    valid = Column(Boolean, nullable=False, default=0)
+    valid = Column(Boolean, nullable=False, default=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
@@ -49,6 +51,8 @@ class Book(Base):
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
     valid = Column(Boolean, nullable=False, default=1)
 
+    bookinfo = relationship("BookInfo", back_poplates="books")
+
 class BookInfo(Base):
     __tablename__ = 'book_info'
     book_info_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
@@ -68,12 +72,15 @@ class BookInfo(Base):
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
     valid = Column(Boolean, nullable=False, default=1)
 
+    category = relationship("Category", back_populates="bookinfo")
+    books = relationship("Book", back_populates="bookinfo")
+
 class BookReview(Base):
     __tablename__ = 'book_review'
     review_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = Column(Integer,  ForeignKey("user.user_id"), nullable=False)
     book_info_id = Column(Integer, ForeignKey("book_info.book_info_id"), nullable=False)
-    review_content = Column(String(1000), nullable=False)
+    review_content = Column(Text, nullable=False)
     rating = Column(DECIMAL(3, 2), nullable=False, default=0.00)
     valid = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
@@ -125,3 +132,5 @@ class Category(Base):
     category_code = Column(String(5), nullable=False)
     category_name = Column(String(30), nullable=False)
     valid = Column(Boolean, nullable=False, default=1)
+    
+    bookinfo = relationship("BookInfo", back_populates="category")
