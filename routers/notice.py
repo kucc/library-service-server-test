@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Query, HTTPException
 from typing import Optional
 from database import Engineconn
 from models import Notice
@@ -73,34 +73,46 @@ def get_notices(
 
     notices = query.all()
 
-    if notices is None or not notices:
+    if notices is not None:
+        if notices:
+            return {
+                "code": status.HTTP_200_OK,
+                "message": "success to get list of notice",
+                "result": notices,
+            }
+        else :
+            return {
+                "code": status.HTTP_204_NO_CONTENT,
+                "message": "In the request was successfully processed, but there is no content to return.",
+                "result": [],
+            }
+    else:
         return {
-            "code" :status.HTTP_204_NO_CONTENT,
-            "message" : "In the request was successfully processed, but there is no content to return.",
-            "result" : [],
-        }
-    else :
-        return {
-            "code": status.HTTP_200_OK,
-            "message": "success to get notice",
-            "result": notices,
+            "code": status.HTTP_204_NO_CONTENT,
+            "message": "In the request was successfully processed, but there is NoneType object.",
+            "result": []
         }
 
 @router.get("/{notice_id}")
 def get_notice(notice_id : int):
     query = db.query(Notice)
     notice = query.filter(Notice.notice_id == notice_id).one()
-
-    if notice :
-        return {
-            "code": status.HTTP_200_OK,
-            "message": "success to get notice",
-            "result": notice
-        }
-    else:
+    if notice is not None:
+        if notice :
+            return {
+                "code": status.HTTP_200_OK,
+                "message": "success to get notice",
+                "result": notice
+            }
+        else:
+            return {
+                "code": status.HTTP_204_NO_CONTENT,
+                "message": "In the request was successfully processed, but there is no content to return.",
+                "result": []
+            }
+    else :
         return {
             "code": status.HTTP_204_NO_CONTENT,
-            "message": "In the request was successfully processed, but there is no content to return.",
+            "message": "In the request was successfully processed, but there is NoneType object.",
             "result": []
         }
-
