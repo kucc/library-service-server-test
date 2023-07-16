@@ -17,10 +17,10 @@ class Engineconn:
     def __init__(self):
         self.engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_recycle=500)
     def sessionmaker(self):
-        Session = sessionmaker(bind=self.engine)
-        session = Session()
-        return session
+        sessionLocal = sessionmaker(autoflush=False, autocommit=False, bind=self.engine)
+        return sessionLocal
 
     def connection(self):
         conn = self.engine.connect()
         return conn
+
