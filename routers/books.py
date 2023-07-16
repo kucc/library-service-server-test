@@ -3,6 +3,7 @@ from typing import Optional
 from database import Engineconn
 from models import Book, BookInfo, BookReview, BookRequest
 from datetime import datetime, timedelta
+from sqlalchemy import asc, desc # asc: 오름차순, desc: 내림차순
 
 
 engine = Engineconn()
@@ -18,7 +19,12 @@ def get_book_list(
     category: Optional[int] = None,
     publisher: Optional[str] = None,
     title: Optional[str] = None,
-    major: Optional[bool] = None,
+
+    only_major: Optional[bool] = False, # 전공도서 여부, 컴퓨터학과 전공도서 조회
+    # 정렬 순서를 정하는 세 가지 Query Parameters, 모두 False일 경우 default는 title의 오름차순으로 정렬된다 - 20230716
+    by_created_at: Optional[bool] = False, # 최신순, 신착도서 조회
+    by_rating: Optional[bool] = False, # 평점순, 인기도서 조회
+    by_publication_year: Optional[bool] = False, # 출판순
 
     get_begin: Optional[str] = None,
     get_end: Optional[str] = None
@@ -50,14 +56,23 @@ def get_book_list(
             "code": status.HTTP_400_BAD_REQUEST,
             "message": "Invalid title name"
         }
-    if major is not None and not isinstance(major, bool):
+    
+    if only_major is not None and not isinstance(only_major, bool):
         return {
             "code": status.HTTP_400_BAD_REQUEST,
             "message": "Invalid major status"
         }
+    if by_created_at is not None and not isinstance(by_created_at, bool) or \
+        by_rating is not None and not isinstance(by_rating, bool) or \
+        by_publication_year is not None and not isinstance(by_publication_year, bool):
+        return {
+            "code": status.HTTP_400_BAD_REQUEST,
+            "message": "Invalid order status among by_created_at, by_rating, and by_publication_year"
+        }
 
     #---------------------Query Parameter를 통한 필터링!---------------------------
     query = session.query(BookInfo)
+    
     if author:
         query = query.filter(BookInfo.author.contains(author))
     if publication_year:
@@ -68,8 +83,6 @@ def get_book_list(
         query = query.filter(BookInfo.publisher == publisher)
     if title:
         query = query.filter(BookInfo.title.contains(title))
-    if major:
-        query = query.filter(BookInfo.major is True)
     
     if get_begin:
         try:
@@ -89,10 +102,33 @@ def get_book_list(
                 "code": status.HTTP_400_BAD_REQUEST,
                 "message": "Invalid end_date format. It should be in YYYY-MM-DD format."
             }
+
+    # 컴퓨터학과 전공도서, 신착도서, 인기도서, 출판순 검색
+    if only_major:
+        query = query.filter(BookInfo.major is True)
+    if by_created_at:
+        if by_rating:
+            if by_publication_year:
+                query = query.order_by(BookInfo.title.asc(), BookInfo.created_at.desc(), BookInfo.rating.desc(), BookInfo.publication_year.desc())
+            else:
+                query = query.order_by(BookInfo.title.asc(), BookInfo.created_at.desc(), BookInfo.rating.desc())
+        elif by_publication_year:
+            query = query.order_by(BookInfo.title.asc(), BookInfo.created_at.desc(), BookInfo.publication_year.desc())
+        else:
+            query = query.order_by(BookInfo.title.asc(), BookInfo.created_at.desc())
+    elif by_rating:
+        if by_publication_year:
+            query = query.order_by(BookInfo.title.asc(), BookInfo.rating.desc(), BookInfo.publication_year.desc())
+        else:
+            query = query.order_by(BookInfo.title.asc(), BookInfo.rating.desc())
+    elif by_publication_year:
+        query = query.order_by(BookInfo.title.asc(), BookInfo.publication_year.desc())
+    else:
+        query = query.order_by(BookInfo.title.asc())
     
-    #---------------------딕셔너리(결과값) 반환---------------------------
     book_info_list = query.all()
-    
+
+    #---------------------딕셔너리(결과값) 반환---------------------------
     if book_info_list is None:
         return {
             "code": status.HTTP_404_NOT_FOUND,
@@ -132,6 +168,11 @@ def get_book(
             "code": status.HTTP_200_OK,
             "message": "Success to get book information",
             "result": book_info
+        }
+    else:
+        return {
+            "code": status.HTTP_204_NO_CONTENT,
+            "message": "Fail to get book information"
         }
 
 
