@@ -19,6 +19,8 @@ class User(Base):
     valid = Column(Boolean, nullable=False, default=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+    password = Column(String(255), nullable=False)
+    salt = Column(String(255), nullable=False)
 
 class Setting(Base):
     __tablename__ = 'settings'
