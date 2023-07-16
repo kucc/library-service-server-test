@@ -62,6 +62,7 @@ class BookInfo(Base):
     version = Column(String(100), nullable=False)
     copied = Column(Boolean, nullable=False, default=0)
     major = Column(Boolean, nullable=False, default=0)
+    rating = Column(DECIMAL(3, 2), ForeignKey("book_review.rating"), nullable=False)
     language = Column(String(10), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
