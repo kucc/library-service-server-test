@@ -1,11 +1,9 @@
 from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy import text, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-
+from database import Base
 from sqlalchemy.orm import relationship
 
-Base = declarative_base()
 
 UnsignedInt = INTEGER()
 UnsignedInt = UnsignedInt.with_variant(INTEGER(unsigned=True), 'mysql')
@@ -53,7 +51,7 @@ class Book(Base):
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
     valid = Column(Boolean, nullable=False, default=1)
 
-    bookinfo = relationship("BookInfo", back_poplates="books")
+    bookinfo = relationship("BookInfo", back_populates="books")
 
 class BookInfo(Base):
     __tablename__ = 'book_info'

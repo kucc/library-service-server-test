@@ -1,20 +1,22 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Query, HTTPException,Depends
 from typing import Optional
-from database import Engineconn
+from database import get_db
 from models import Notice
 from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 
-db = Engineconn().sessionmaker()
 router = APIRouter(prefix="/notices", tags=["notices"], responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
 
 # about handler
 # /notice 경로에 대한 핸들러 함수
-@router.get("")
+@router.get("/", )
 def get_notices(
     author: Optional[int] = None,
     title: Optional[str] = None,
     get_begin: Optional[str] = None,
     get_end: Optional[str] = None,
+
+    db: Session = Depends(get_db)
 ) :
     # Validate author and title parameters
     if author is not None and not isinstance(author, int):
@@ -73,34 +75,46 @@ def get_notices(
 
     notices = query.all()
 
-    if notices is None or not notices:
-        return {
-            "code" :status.HTTP_204_NO_CONTENT,
-            "message" : "In the request was successfully processed, but there is no content to return.",
-            "result" : [],
-        }
-    else :
-        return {
-            "code": status.HTTP_200_OK,
-            "message": "success to get notice",
-            "result": notices,
-        }
-
-@router.get("/{notice_id}")
-def get_notice(notice_id : int):
-    query = db.query(Notice)
-    notice = query.filter(Notice.notice_id == notice_id).one()
-
-    if notice :
-        return {
-            "code": status.HTTP_200_OK,
-            "message": "success to get notice",
-            "result": notice
-        }
+    if notices is not None:
+        if notices:
+            return {
+                "code": status.HTTP_200_OK,
+                "message": "success to get list of notice",
+                "result": notices,
+            }
+        else :
+            return {
+                "code": status.HTTP_204_NO_CONTENT,
+                "message": "In the request was successfully processed, but there is no content to return.",
+                "result": [],
+            }
     else:
         return {
             "code": status.HTTP_204_NO_CONTENT,
-            "message": "In the request was successfully processed, but there is no content to return.",
+            "message": "In the request was successfully processed, but there is NoneType object.",
             "result": []
         }
 
+@router.get("/{notice_id}")
+def get_notice(notice_id : int, db: Session = Depends(get_db)):
+    query = db.query(Notice)
+    notice = query.filter(Notice.notice_id == notice_id).one()
+    if notice is not None:
+        if notice :
+            return {
+                "code": status.HTTP_200_OK,
+                "message": "success to get notice",
+                "result": notice
+            }
+        else:
+            return {
+                "code": status.HTTP_204_NO_CONTENT,
+                "message": "In the request was successfully processed, but there is no content to return.",
+                "result": []
+            }
+    else :
+        return {
+            "code": status.HTTP_204_NO_CONTENT,
+            "message": "In the request was successfully processed, but there is NoneType object.",
+            "result": []
+        }

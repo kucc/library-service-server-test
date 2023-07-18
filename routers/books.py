@@ -1,9 +1,9 @@
 from fastapi import APIRouter
-from database import Engineconn
+from database import EngineConn
 from models import Book, BookInfo, BookReview, BookRequest
 
-engine = Engineconn()
-session = engine.sessionmaker()
+engine = EngineConn()
+session = engine.get_session()
 router = APIRouter(prefix="/books", tags=["books"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
 
 # /books 경로에 대한 핸들러 함수
