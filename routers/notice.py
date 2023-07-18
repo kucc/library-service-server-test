@@ -1,20 +1,22 @@
-from fastapi import APIRouter, status, Query, HTTPException
+from fastapi import APIRouter, status, Query, HTTPException,Depends
 from typing import Optional
-from database import Engineconn
+from database import get_db
 from models import Notice
 from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 
-db = Engineconn().sessionmaker()
 router = APIRouter(prefix="/notices", tags=["notices"], responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
 
 # about handler
 # /notice 경로에 대한 핸들러 함수
-@router.get("")
+@router.get("/", )
 def get_notices(
     author: Optional[int] = None,
     title: Optional[str] = None,
     get_begin: Optional[str] = None,
     get_end: Optional[str] = None,
+
+    db: Session = Depends(get_db)
 ) :
     # Validate author and title parameters
     if author is not None and not isinstance(author, int):
@@ -94,7 +96,7 @@ def get_notices(
         }
 
 @router.get("/{notice_id}")
-def get_notice(notice_id : int):
+def get_notice(notice_id : int, db: Session = Depends(get_db)):
     query = db.query(Notice)
     notice = query.filter(Notice.notice_id == notice_id).one()
     if notice is not None:
