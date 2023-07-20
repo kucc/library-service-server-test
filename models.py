@@ -36,7 +36,7 @@ class Admin(Base):
     __tablename__ = 'admin'
     admin_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
     user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
-    admin_status = Column(SmallInteger, nullable=False, default=0)
+    admin_status = Column(Boolean, nullable=False, default=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
@@ -57,13 +57,13 @@ class BookInfo(Base):
     __tablename__ = 'book_info'
     book_info_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     title = Column(String(255), nullable=False)
-    subtitle = Column(String(255), nullable=False)
+    subtitle = Column(String(255))
     author = Column(String(100), nullable=False)
     publisher = Column(String(45), nullable=False)
     publication_year = Column(Date, nullable=False)
     image_url = Column(Text)
     category_id = Column(Integer, ForeignKey("category.category_id"), nullable=False)
-    version = Column(String(100))
+    version = Column(String(45))
     copied = Column(Boolean, nullable=False, default=0)
     major = Column(Boolean, default=0)
     rating = Column(DECIMAL(3, 2), default = 0.00)
@@ -93,11 +93,10 @@ class BookRequest(Base):
     book_title = Column(String(255), nullable=False)
     author = Column(String(100))
     publication_year = Column(Integer)
-    publisher = Column(String(100))
+    publisher = Column(String(45))
     request_link = Column(Text, nullable=False)
     reason = Column(Text, nullable=False)
     processing_status = Column(SmallInteger, nullable=False, default=0)
-    request_date = Column(DateTime, nullable=False)
     valid = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
@@ -129,8 +128,8 @@ class Loan(Base):
 class Category(Base):
     __tablename__ = 'category'
     category_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    category_code = Column(String(5), nullable=False)
-    category_name = Column(String(30), nullable=False)
+    category_code = Column(String(5), nullable=False, unique=True)
+    category_name = Column(String(30), nullable=False, unique =True)
     valid = Column(Boolean, nullable=False, default=1)
     
     bookinfo = relationship("BookInfo", back_populates="category")
