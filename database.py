@@ -7,11 +7,11 @@ from config import Settings
 Base = declarative_base()
 settings = Settings()
 
-db_host = settings.DB_HOST
-db_port = settings.DB_PORT
-db_user = settings.DB_USER
-db_password = settings.DB_PASSWORD
-db_db = settings.DB_DB
+db_host = settings.db_host
+db_port = settings.db_port
+db_user = settings.db_user
+db_password = settings.db_password
+db_db = settings.db_db
 
 SQLALCHEMY_DATABASE_URL = f"mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/{db_db}"
 
