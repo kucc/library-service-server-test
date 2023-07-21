@@ -21,3 +21,7 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
         script: whoami
+    - name: pass enviroment
+      uses: appleboy/ssh-action@master
+      env:
+        DB_DB: ${{ secrets.DB_DB }}
