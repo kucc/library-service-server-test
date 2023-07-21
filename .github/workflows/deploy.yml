@@ -1,23 +1,22 @@
-name: deploy
-
-run-name: Commit by ${{ github.actor }}
+name: CI
 
 on:
   push:
-    branches:
-      - deploy
-
-
-
-
+    branches: deploy
+  pull_request:
+    branches: deploy
 
 jobs:
-  check-bats-version:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [ 12,14,16 ]
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-      - run: npm install -g bats
-      - run: bats -v
+      - name: checkout to repository
+        uses: actions/checkout@v2
+
+      - name: Run a one-line script
+        run: echo Hello, world!
+      - run: npm test
