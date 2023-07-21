@@ -1,6 +1,7 @@
 import datetime
 from fastapi import APIRouter, Response, status, HTTPException,Depends
 from database import get_db
+from internal.key_validation import ItemKeyValidationError, ForeignKeyValidationError
 from models import Admin, Book, BookInfo, BookRequest, User, Notice, Category
 from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel, validator
@@ -8,14 +9,6 @@ from sqlalchemy.exc import IntegrityError
 
 
 router = APIRouter(prefix="/admins", tags=["admins"])
-
-class ItemKeyValidationError(HTTPException):
-    def __init__(self, detail:tuple):
-        super().__init__(status_code=400, detail=f"Invalid Item key, The {detail[0]} {detail[-1]} does not exist.")
-
-class ForeignKeyValidationError(HTTPException):
-    def __init__(self, detail: tuple):
-        super().__init__(status_code=400, detail=f"Invalid ForeignKey {detail[0]}. The {detail[0]} {detail[-1]} does not exist.")
 
 #/admins 경로에 대한 핸들러 함수
 @router.get("/")
