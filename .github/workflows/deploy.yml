@@ -14,26 +14,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: pass enviroment
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+
+    - name: Connect to NCP Server, pass enviroment, and run docker-compose
       uses: appleboy/ssh-action@master
       env:
-        FOO: bar
         DB_DB: ${{ secrets.DB_DB }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_USER: ${{ secrets.DB_USER }}
+        FB_SALT_SEPARATOR: ${{ secrets.FB_SALT_SEPARATOR }}
+        FB_SINGER_KEY: ${{ secrets.FB_SINGER_KEY }}
+        FB_ROUNDS: ${{ secrets.FB_ROUNDS }}
+        FB_MEM_COST: ${{ secrets.FB_MEM_COST }}
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
-        envs: FOO, DB_DB
+        envs: DB_DB, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER, FB_SALT_SEPARATOR, FB_SINGER_KEY, FB_ROUNDS, FB_MEM_COST, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
         script: |
-          echo $FOO
-          echo $DB_DB
-    - name: excuting remote ssh commands using password
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        port: ${{ secrets.PORT }}
-        script: |
-          echo $FOO
+          docker stop $(docker ps -a -q)
+          docker rm $(docker ps -a -q)
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          docker-compose up -d
