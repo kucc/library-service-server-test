@@ -25,3 +25,9 @@ jobs:
       uses: appleboy/ssh-action@master
       env:
         DB_DB: ${{ secrets.DB_DB }}
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        envs: DB_DB
