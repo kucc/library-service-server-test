@@ -13,14 +13,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: excuting remote ssh commands using password
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
-        port: ${{ secrets.PORT }}
-        script: whoami
+
     - name: pass enviroment
       uses: appleboy/ssh-action@master
       env:
@@ -32,3 +25,15 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
         envs: FOO, DB_DB
+        script: |
+          echo $FOO
+          echo $DB_DB
+    - name: excuting remote ssh commands using password
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        script: whoami
+          echo $FOO
