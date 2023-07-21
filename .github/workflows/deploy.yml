@@ -1,6 +1,16 @@
-name: learn-github-actions
-run-name: ${{ github.actor }} is learning GitHub Actions
-on: [push]
+name: deploy
+
+run-name: Commit by ${{ github.actor }}
+
+on:
+  push:
+    branches:
+      - deploy-test
+
+
+
+
+
 jobs:
   check-bats-version:
     runs-on: ubuntu-latest
