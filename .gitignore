@@ -28,9 +28,13 @@ archive.zip
 .*.sw?
 .cache
 
-# minjae
-firebase
+# minja
 TIL
+
+# minjae - deploy & login test
+firebase
+firebasescrypt
+routers/auth.py
 
 # SuBin
 .idea

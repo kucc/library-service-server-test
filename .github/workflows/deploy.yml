@@ -5,7 +5,7 @@ run-name: Commit by ${{ github.actor }}
 on:
   push:
     branches:
-      - deploy-test
+      - deploy
 
 
 
