@@ -33,7 +33,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:latest 
 
     - name: Connect to NCP Server, pass enviroment, and run docker-compose
       uses: appleboy/ssh-action@master
