@@ -56,6 +56,7 @@ jobs:
         port: ${{ secrets.PORT }}
         envs: DB_DB, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER, FB_SALT_SEPARATOR, FB_SINGER_KEY, FB_ROUNDS, FB_MEM_COST, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
         script: |
+          docker stop $(docker ps -q)
           docker rmi -f $(docker images -aq)
           # docker stop $(docker ps -a -q)
           # docker rm $(docker ps -a -q)
