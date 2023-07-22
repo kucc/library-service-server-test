@@ -60,5 +60,4 @@ jobs:
           # docker stop $(docker ps -a -q)
           # docker rm $(docker ps -a -q)
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-          sudo docker-compose up -d
-          docker run --env-file .env -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/app:latest \ uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+          docker run -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/app:latest \ uvicorn main:app --host 0.0.0.0 --port 8080 --reload
