@@ -64,8 +64,8 @@ jobs:
           # docker rm $(docker ps -a -q)
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
           docker run --rm \
-          -e DB_DB=DB_DB -e DB_HOST=DB_HOST \
-          -e DB_PASSWORD=DB_PASSWORD -e DB_PORT=DB_PORT \
-          -e DB_USER=DB_USER \
+          -e DB_DB=${{secrets.DB_DB}} -e DB_HOST=${{secrets.DB_HOST}} \
+          -e DB_PASSWORD=${{secrets.DB_PASSWORD}} -e DB_PORT=${{secrets.DB_PORT}}} \
+          -e DB_USER=${{secrets.DB_USER}} \
           -p 8080:8000 \
           --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest

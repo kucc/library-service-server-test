@@ -7,12 +7,17 @@ load_dotenv() # take environment variables from .env.
 DB_DB = os.getenv("DB_DB")
 DB_HOST = os.getenv("DB_HOST")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
+
 db_port = os.getenv("DB_PORT") # 테스트용
 if db_port is not None and db_port.isdigit():
     DB_PORT = int(os.getenv("DB_PORT"))
 else:
     print("DB_PORT is not digit. DB_PORT is set to 3306")
+    if db_port is None:
+        print("DB_PORT is None")
     DB_PORT = 3306
+
+
 DB_USER = os.getenv("DB_USER")
 
 # firebase authentication & authorization
