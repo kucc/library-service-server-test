@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - deploy
+      - main
   pull_request:
     branches:
       - deploy
+      - main
 
 jobs:
   build:
@@ -61,4 +63,10 @@ jobs:
           # docker stop $(docker ps -a -q)
           # docker rm $(docker ps -a -q)
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-          docker run --rm -p 8080:8000 ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          docker run --rm \
+          -e DB_DB: DB_DB -e DB_HOST: DB_HOST \
+          -e DB_PASSWORD: DB_PASSWORD -e DB_PORT: DB_PORT \
+          -e DB_USER: DB_USER -e FB_SALT_SEPARATOR: FB_SALT_SEPARATOR \
+          -e FB_SINGER_KEY: FB_SINGER_KEY -e FB_ROUNDS: FB_ROUNDS \
+          -e FB_MEM_COST: FB_MEM_COST
+          -p 8080:8000 ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
