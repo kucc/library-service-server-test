@@ -29,8 +29,13 @@ archive.zip
 .cache
 
 # minjae
-firebase
 TIL
+
+# minjae - deploy & login test
+firebase
+firebasescrypt
+routers/auth.py
+kucc-lib-keykey.pem
 
 # SuBin
 .idea
