@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     db_db: str = DB_DB
     db_host: str = DB_HOST
     db_password: str = DB_PASSWORD
-    db_port: int = db_port
+    db_port: int = DB_PORT
     db_user: str = DB_USER
 
     fb_salt_separator: str = FB_SALT_SEPARATOR
