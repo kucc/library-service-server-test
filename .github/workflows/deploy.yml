@@ -69,4 +69,5 @@ jobs:
           -e DB_USER: DB_USER -e FB_SALT_SEPARATOR: FB_SALT_SEPARATOR \
           -e FB_SINGER_KEY: FB_SINGER_KEY -e FB_ROUNDS: FB_ROUNDS \
           -e FB_MEM_COST: FB_MEM_COST \
-          -p 8080:8000 ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          -p 8080:8000 \
+          --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
