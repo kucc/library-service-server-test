@@ -68,4 +68,4 @@ jobs:
           -e DB_PASSWORD=${{secrets.DB_PASSWORD}} -e DB_PORT=${{secrets.DB_PORT}} \
           -e DB_USER=${{secrets.DB_USER}} \
           -p 8080:8000 \
-          --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          -d --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
