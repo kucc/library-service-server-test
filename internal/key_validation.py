@@ -6,4 +6,4 @@ class ForeignKeyValidationError(HTTPException):
 
 class ItemKeyValidationError(HTTPException):
     def __init__(self, detail:tuple):
-        super().__init__(status_code=400, detail=f"Invalid ItemKey, The {detail[0]} {detail[-1]} does not exist.")
+        super().__init__(status_code=404, detail=f"Invalid ItemKey, The {detail[0]} {detail[-1]} does not exist.")

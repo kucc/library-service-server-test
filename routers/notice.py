@@ -1,33 +1,13 @@
 from fastapi import APIRouter, status, Query, HTTPException,Depends
 from database import get_db
 from internal.key_validation import ItemKeyValidationError
+from internal.schema import NoticeOut
 from models import Notice
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from typing import List
-from pydantic import BaseModel, validator
 
-import _datetime
 router = APIRouter(prefix="/notices", tags=["notices"])
-
-# TODO SQLALCHEMY -> PYDANTIC MODEL CONVERT
-class NoticeIn(BaseModel):
-    title : str
-    notice_content : str
-    author_id : int
-
-    class Config:
-        orm_mode = True
-
-class NoticeOut(NoticeIn):
-    created_at: _datetime.datetime
-    updated_at: _datetime.datetime
-    valid : bool
-    notice_id : int
-
-    class Config:
-        orm_mode = True
-
 
 # /notice 경로에 대한 핸들러 함수
 @router.get("/",
