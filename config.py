@@ -8,26 +8,7 @@ DB_DB = os.getenv("DB_DB")
 DB_HOST = os.getenv("DB_HOST")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
-db_port = int(os.getenv("DB_PORT")) # 테스트용
-if db_port is not None and db_port.isdigit():
-    print("DB_PORT is digit. DB_PORT is set to ")
-    print("DB_PORT is digit. DB_PORT is set to ")
-    print("DB_PORT is digit. DB_PORT is set to ")
-    print("DB_PORT is digit. DB_PORT is set to ")
-    print("DB_PORT is digit. DB_PORT is set to ")
-    db_port = int(os.getenv("DB_PORT"))
-    print(type(db_port))
-    print(type(db_port))
-    print(type(db_port))
-    print(type(db_port))
-    print(type(db_port))
-else:
-    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
-    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
-    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
-    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
-    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
-
+DB_PORT = int(os.getenv("DB_PORT")) # 테스트용
 DB_USER = os.getenv("DB_USER")
 
 # firebase authentication & authorization
