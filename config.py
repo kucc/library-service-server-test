@@ -8,7 +8,7 @@ DB_DB = os.getenv("DB_DB")
 DB_HOST = os.getenv("DB_HOST")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
-db_port = os.getenv("DB_PORT") # 테스트용
+db_port = int(os.getenv("DB_PORT")) # 테스트용
 if db_port is not None and db_port.isdigit():
     print("DB_PORT is digit. DB_PORT is set to ")
     print("DB_PORT is digit. DB_PORT is set to ")
