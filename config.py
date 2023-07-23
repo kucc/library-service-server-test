@@ -10,9 +10,19 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 db_port = os.getenv("DB_PORT") # 테스트용
 if db_port is not None and db_port.isdigit():
+    print("DB_PORT is digit. DB_PORT is set to " + db_port")
+    print("DB_PORT is digit. DB_PORT is set to " + db_port")
+    print("DB_PORT is digit. DB_PORT is set to " + db_port")
+    print("DB_PORT is digit. DB_PORT is set to " + db_port")
+    print("DB_PORT is digit. DB_PORT is set to " + db_port")
     DB_PORT = int(os.getenv("DB_PORT"))
 else:
     print("DB_PORT is not digit. DB_PORT is set to 3306")
+    print("DB_PORT is not digit. DB_PORT is set to 3306")
+    print("DB_PORT is not digit. DB_PORT is set to 3306")
+    print("DB_PORT is not digit. DB_PORT is set to 3306")
+    print("DB_PORT is not digit. DB_PORT is set to 3306")
+
     if db_port is None:
         print("DB_PORT is None")
     DB_PORT = 3306
