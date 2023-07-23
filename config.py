@@ -16,6 +16,12 @@ if db_port is not None and db_port.isdigit():
     print("DB_PORT is digit. DB_PORT is set to ")
     print("DB_PORT is digit. DB_PORT is set to ")
     DB_PORT = int(os.getenv("DB_PORT"))
+    print(type(DB_PORT))
+    print(type(DB_PORT))
+    print(type(DB_PORT))
+    print(type(DB_PORT))
+    print(type(DB_PORT))
+
 else:
     print("DB_PORT is not digit. DB_PORT is set to 3306")
     print("DB_PORT is not digit. DB_PORT is set to 3306")
