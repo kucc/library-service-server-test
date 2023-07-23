@@ -15,24 +15,18 @@ if db_port is not None and db_port.isdigit():
     print("DB_PORT is digit. DB_PORT is set to ")
     print("DB_PORT is digit. DB_PORT is set to ")
     print("DB_PORT is digit. DB_PORT is set to ")
-    DB_PORT = int(os.getenv("DB_PORT"))
-    print(type(DB_PORT))
-    print(type(DB_PORT))
-    print(type(DB_PORT))
-    print(type(DB_PORT))
-    print(type(DB_PORT))
-
+    db_port = int(os.getenv("DB_PORT"))
+    print(type(db_port))
+    print(type(db_port))
+    print(type(db_port))
+    print(type(db_port))
+    print(type(db_port))
 else:
-    print("DB_PORT is not digit. DB_PORT is set to 3306")
-    print("DB_PORT is not digit. DB_PORT is set to 3306")
-    print("DB_PORT is not digit. DB_PORT is set to 3306")
-    print("DB_PORT is not digit. DB_PORT is set to 3306")
-    print("DB_PORT is not digit. DB_PORT is set to 3306")
-
-    if db_port is None:
-        print("DB_PORT is None")
-    DB_PORT = 3306
-
+    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
+    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
+    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
+    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
+    print("DB_PORT is not digit. DB_PORT is set to 3306", type(db_port))
 
 DB_USER = os.getenv("DB_USER")
 
@@ -48,7 +42,7 @@ class Settings(BaseSettings):
     db_db: str = DB_DB
     db_host: str = DB_HOST
     db_password: str = DB_PASSWORD
-    db_port: int = DB_PORT
+    db_port: int = db_port
     db_user: str = DB_USER
 
     fb_salt_separator: str = FB_SALT_SEPARATOR
