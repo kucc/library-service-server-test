@@ -18,12 +18,44 @@ async def get_admins(
     admins = db.query(Admin).all()
     return admins
 
+class BookInfoIn(BaseModel):
+    title : str
+    subtitle : str| None
+    category_id : int
+    author : str
+    publisher : str
+    publication_year : int
+    image_url : str | None
+    version : str | None
+    language : str | None
+    major : bool | None = False
+    copied : bool | None = False
+
+    @validator('language')
+    def set_default_language(cls, language: str | None) -> str:
+        if language is None:
+            return "한국어"
+        return language
+
+    class Config:
+        orm_mode = True
+
+
+class BookInfoOut(BookInfoIn):
+    book_info_id : int
+    created_at : datetime.datetime
+    updated_at : datetime.datetime
+    rating : float
+    valid : bool
+
+    class Config:
+        orm_mode = True
+
 #도서 정보(book_info) 리스트 조회
 @router.get("/book-info",
             status_code=status.HTTP_200_OK,
             response_description="Success to get whole book-info information list")
 async def get_book_info_list(
-        response: Response,
         skip: int = 0,
         limit: int = 10,
         title: str | None = None,
@@ -84,41 +116,6 @@ async def get_book_info(
         return book_info
     else:
         raise ItemKeyValidationError(detail=("book_info_id", book_info_id))
-
-
-class BookInfoIn(BaseModel):
-    title : str
-    subtitle : str| None
-    category_id : int
-    author : str
-    publisher : str
-    publication_year : int
-    image_url : str | None
-    version : str | None
-    language : str | None
-    major : bool | None = False
-    copied : bool | None = False
-
-    @validator('language')
-    def set_default_language(cls, language: str | None) -> str:
-        if language is None:
-            return "한국어"
-        return language
-
-    class Config:
-        orm_mode = True
-
-
-class BookInfoOut(BookInfoIn):
-    book_info_id : int
-    created_at : datetime.datetime
-    updated_at : datetime.datetime
-    rating : float
-    valid : bool
-
-    class Config:
-        orm_mode = True
-
 
 
 # 도서 정보 등록
