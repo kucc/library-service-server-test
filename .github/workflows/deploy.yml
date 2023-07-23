@@ -1,23 +1,71 @@
-name: deploy
+name: deploy 
 
-run-name: Commit by ${{ github.actor }}
-
-on:
-  push:
+on:  
+  push: 
     branches:
-      - deploy-test
-
-
-
-
+      - deploy
+      - main
+  pull_request:
+    branches:
+      - deploy
+      - main
 
 jobs:
-  check-bats-version:
+  build: 
+    name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-      - run: npm install -g bats
-      - run: bats -v
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:latest 
+
+    - name: Connect to NCP Server, pass enviroment, and run docker
+      uses: appleboy/ssh-action@master
+      env:
+        DB_DB: ${{ secrets.DB_DB }}
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        DB_PORT: ${{ secrets.DB_PORT }}
+        DB_USER: ${{ secrets.DB_USER }}
+        FB_SALT_SEPARATOR: ${{ secrets.FB_SALT_SEPARATOR }}
+        FB_SINGER_KEY: ${{ secrets.FB_SINGER_KEY }}
+        FB_ROUNDS: ${{ secrets.FB_ROUNDS }}
+        FB_MEM_COST: ${{ secrets.FB_MEM_COST }}
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        envs: DB_DB, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER, FB_SALT_SEPARATOR, FB_SINGER_KEY, FB_ROUNDS, FB_MEM_COST, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
+        script: |
+          docker stop $(docker ps -q)
+          docker rmi -f $(docker images -aq)
+          # docker stop $(docker ps -a -q)
+          # docker rm $(docker ps -a -q)
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          docker run --rm \
+          -e DB_DB=${{secrets.DB_DB}} -e DB_HOST=${{secrets.DB_HOST}} \
+          -e DB_PASSWORD=${{secrets.DB_PASSWORD}} -e DB_PORT=${{secrets.DB_PORT}} \
+          -e DB_USER=${{secrets.DB_USER}} \
+          -p 8080:8000 \
+          -d --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
