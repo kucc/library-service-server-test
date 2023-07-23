@@ -140,3 +140,19 @@ async def update_book_info(
     return book_info
 
 # 도서 정보 삭제
+@router.delete('/book_info/{book_info_id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_book_info(
+        book_info_id : int,
+        db : Session = Depends(get_db)
+):
+    book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
+
+    if not book_info:
+        raise ItemKeyValidationError(detail=("book_info", book_info_id))
+
+    book_info.valid = 0
+    db.commit()
+    return None
+
+# 소장 정보 조회
+
