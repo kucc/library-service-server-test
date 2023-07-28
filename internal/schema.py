@@ -120,3 +120,16 @@ class NoticeOut(NoticeIn):
     updated_at: _datetime.datetime
     valid: bool
     notice_id: int
+
+# OrderBy
+class OrderBy:
+    def __init__(
+        self,
+        by_created_at: bool | None = False, # 최신순, 신착도서 조회
+        by_rating: bool | None = False, # 평점순, 인기도서 조회
+        by_publication_year: bool | None = False # 출판순
+        # 여기에 OrderBy 계속 추가하면 됨
+    ):
+        self.by_created_at = by_created_at
+        self.by_rating = by_rating
+        self.by_publication_year = by_publication_year
