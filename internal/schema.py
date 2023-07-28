@@ -54,10 +54,14 @@ class BookInfoOut(BookInfoIn):
 # book_id element for holdings list
 class HoldingID(BaseModel):
     book_id = int
+    __setattr__ = object.__setattr__
+
+    def __init__(self, num):
+        self.book_id = num
 
 # ADMIN - 도서 정보 리스트 조회 RES
 class BookInfoList(BookInfoOut):
-    holdings : List[HoldingID]
+    holdings: List[dict]
 
 # ADMIN - 소장 정보 검색
 class BookHoldQuery:

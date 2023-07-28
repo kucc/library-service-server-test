@@ -63,7 +63,7 @@ async def get_book_info_list(
     if book_info_data:
         for book_info in book_info_data:
             books = db.query(Book).filter(book_info.book_info_id == Book.book_info_id).all()
-            holdings = [{"book_id": book.book_id} for book in books]
+            holdings = [HoldingID(book.book_id) for book in books]
             book_info_dict = book_info.__dict__
             book_info_dict['holdings'] = holdings
             book_info_list.append(book_info_dict)
@@ -266,3 +266,60 @@ async def create_book_holding(
     db.commit()
     db.refresh(book)
     return book
+
+# 소장 정보 수정
+@router.patch('/book-holdings/{book_id}',
+              response_model=BookHoldOut,
+              status_code=status.HTTP_200_OK,
+              response_description="Success to patch the book-holding"
+              )
+async def update_book_holding(
+        book_id: int,
+        req: Request,
+        db: Session = Depends(get_db)
+):
+    book = db.query(Book).filter_by(book_id=book_id).first()
+    if not book:
+        raise ItemKeyValidationError(detail=("book_id", book_id))
+
+    dict_book = book.__dict__
+
+    for key in req.keys():
+        if key in dict_book:
+            if isinstance(req[key], type(dict_book[key])):
+                if key == 'book_info_id':
+                    book_info_id = req['book_info_id']
+                    fk_bookinfo = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
+                    if not fk_bookinfo:
+                        raise ForeignKeyValidationError(detail=("book_info_id", book_info_id))
+                setattr(book, key, req[key])
+            else:
+                raise HTTPException(status_code=400, detail=f"Invalid value type for column '{key}'.")
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid column name: {key}")
+
+    db.commit()
+    db.refresh(book)
+
+    return book
+
+# 소장 정보 삭제
+@router.delete('/book-info/{book_info_id}',
+               status_code=status.HTTP_204_NO_CONTENT,
+               response_description="Success to remove the book holding"
+               )
+async def delete_book_info(
+        book_id: int,
+        db: Session = Depends(get_db)
+):
+    book = db.query(BookInfo).filter_by(book_id=book_id).first()
+
+    if not book:
+        raise ItemKeyValidationError(detail=("book_info", book_id))
+
+    book.valid = 0
+    db.commit()
+    return None
+
+
+
