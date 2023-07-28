@@ -30,18 +30,9 @@ async def get_book_info_list(
         db: Session = Depends(get_db),
 
 ):
-    # FILTERING LOGIC CODE 간소화 함수
-    def apply_filters(query, model, q):
-        for attr, value in q.__dict__.items():
-            if value is not None:
-                if isinstance(value, str):
-                    query = query.filter(getattr(model, attr).ilike(f"%{value}%"))
-                elif isinstance(value, (int, bool)):
-                    query = query.filter(getattr(model, attr) == value)
-        return query
 
     query = db.query(BookInfo)
-    query = apply_filters(query, BookInfo, q)
+    query = filters_by_q(query, BookInfo, q)
     book_info_list = []
     book_info_data = query.all()
 
