@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 # TODO - 1. CRUD 용 함수 만들기
 router = APIRouter(prefix="/admins", tags=["admins"])
-
 # /admins 경로에 대한 핸들러 함수
 @router.get("")
 async def get_admins(
@@ -22,7 +21,7 @@ async def get_admins(
 # 도서 정보(book_info) 리스트 조회
 @router.get("/book-info",
             status_code=status.HTTP_200_OK,
-            response_model=List[BookInfoList],
+            # response_model=List[BookInfoList],
             response_description="Success to get whole book-info information list")
 async def get_book_info_list(
         skip: int | None = 0,
@@ -31,31 +30,9 @@ async def get_book_info_list(
         db: Session = Depends(get_db),
 
 ):
+
     query = db.query(BookInfo)
-
-# TODO - FILTERING LOGIC CODE 간소화
-# 1. q의 attribute를 순회 -> type 확인 -> string이면 ilike, int 또는 bool이면 ==
-
-    if q.title is not None:
-        query = query.filter(BookInfo.title.ilike(f"%{q.title}%"))
-    if q.author is not None:
-        query = query.filter(BookInfo.author.ilike(f"%{q.author}%"))
-
-    if q.publisher is not None:
-        query = query.filter(BookInfo.publisher.ilike(f"%{q.publisher}%"))
-
-    if q.publication_year is not None:
-        query = query.filter(BookInfo.publication_year == q.publication_year)
-
-    if q.category is not None:
-        query = query.filter(BookInfo.category_id == q.category)
-
-    if q.major is not None:
-        query = query.filter(BookInfo.major == q.major)
-
-    if q.copied is not None:
-        query = query.filter(BookInfo.copied.ilike(f"%{q.copied}%"))
-
+    query = filters_by_q(query, BookInfo, q)
     book_info_list = []
     book_info_data = query.all()
 

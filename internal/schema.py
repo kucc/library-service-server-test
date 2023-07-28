@@ -2,7 +2,6 @@ from pydantic import BaseModel, validator
 import _datetime
 from typing import List
 
-
 # TODO ADMIN - BOOK SELECT를 위한 클래스 만들기
 
 # ADMIN - 도서 정보 검색 REQ
@@ -42,13 +41,14 @@ class BookInfoIn(BaseModel):
     class Config:
         orm_mode = True
 
-
-# ADMIN - 도서 정보 등록/수정 RES
 class BookInfoOut(BookInfoIn):
     book_info_id: int
     created_at: _datetime.datetime
     updated_at: _datetime.datetime
     rating: float
+
+# ADMIN - 도서 정보 등록/수정 RES
+class BookInfoOutAdmin(BookInfoOut):
     valid: bool
 
 # book_id element for holdings list
@@ -59,9 +59,9 @@ class HoldingID(BaseModel):
     def __init__(self, num):
         self.book_id = num
 
-# ADMIN - 도서 정보 리스트 조회 RES
+# 도서 정보 리스트 조회 RES
 class BookInfoList(BookInfoOut):
-    holdings: List[dict]
+    holdings: List[HoldingID]
 
 # ADMIN - 소장 정보 검색
 class BookHoldQuery:
