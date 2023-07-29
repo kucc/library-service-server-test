@@ -68,18 +68,14 @@ class BookHoldQuery:
     def __init__(self,
                  donor_name: str | None = None,
                  book_status: int | None = None,
-                 book_info_id: int | None = None,
-                 get_begin: str | None = None,
-                 get_end: str | None = None,
+                 book_info_id: int | None = None
                  ):
         self.book_info_id = book_info_id
         self.donor_name = donor_name
         self.book_status = book_status
-        self.get_begin = get_begin
-        self.get_end = get_end
-
 
 # ADMIN - 소장 정보 등록/수정
+
 class BookHoldIn(BaseModel):
     book_info_id: int
     donor_name: str | None = None
@@ -123,17 +119,21 @@ class NoticeOut(NoticeIn):
 class NoticeOutAdmin(NoticeOut):
     valid: bool
 
-# Review 생성시, 클라이언트가 입력해야 할 클래스
+# USERS - Review 생성시, 클라이언트가 입력해야 할 클래스
 class BookReviewIn(BaseModel):
+    user_id: int
+    book_info_id: int
+    review_content: str
+    rating: float
 
-
+# BOOKS - 전체/개별 Review 조회 RES
 class BookReviewOut(BookReviewIn):
-    review_id
-    created_at
-    updated_at
+    review_id: int
+    created_at: _datetime.datetime
+    updated_at: _datetime.datetime
 
 class BookReviewOutAdmin(BookReviewOut):
-    valid
+    valid: bool
 
 # OrderBy
 class OrderBy:
