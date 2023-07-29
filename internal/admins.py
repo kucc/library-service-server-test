@@ -3,6 +3,7 @@ from fastapi import APIRouter, status, HTTPException, Depends, Request
 from database import get_db
 from internal.key_validation import ItemKeyValidationError, ForeignKeyValidationError
 from internal.schema import *
+from internal.crudf import *
 from models import Admin, Book, BookInfo, BookRequest, User, Notice, Category
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
@@ -30,9 +31,8 @@ async def get_book_info_list(
         db: Session = Depends(get_db),
 
 ):
-
     query = db.query(BookInfo)
-    query = filters_by_q(query, BookInfo, q)
+    query = filters_by_query(query, BookInfo, q)
     book_info_list = []
     book_info_data = query.all()
 
@@ -154,48 +154,12 @@ async def get_book_holdings_info(
         skip: int | None = 0,
         limit: int | None = 10,
         q: BookHoldQuery = Depends(),
+        p: PeriodQuery = Depends(),
         db: Session = Depends(get_db)
-
 ):
     query = db.query(Book)
-
-    # TODO - FILTERING LOGIC CODE 간소화
-    # 1. q의 attribute를 순회 -> type 확인 -> string이면 ilike, int 또는 bool이면 ==,
-    # get_end, get_begin 함수로 빼기
-    if q.book_info_id is not None:
-        query = query.filter(Book.book_info_id == q.book_info_id)
-
-    if q.book_status is not None:
-        query = query.filter(Book.book_status == q.book_status)
-
-    if q.donor_name is not None:
-        query = query.filter(Book.donor_name.ilike(f"%{q.donor_name}%"))
-
-    if q.get_begin is not None:
-        try:
-            begin_date = datetime.strptime(q.get_begin, "%Y-%m-%d")
-        except ValueError:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Invalid begin_date format. It should be in YY-MM-DD format.")
-        else:
-            if begin_date > datetime.now():
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail="Invalid begin_date. It cannot be in the future.")
-    else:
-        begin_date = datetime.now() - timedelta(days=60)
-
-    query = query.filter(begin_date <= Book.updated_at)
-
-    if q.get_end is not None:
-        try:
-            end_date = datetime.strptime(q.get_end, "%Y-%m-%d")
-        except ValueError:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Invalid begin_date format. It should be in YY-MM-DD format.")
-    else:
-        end_date = datetime.now()
-
-    query = query.filter(Book.updated_at <= end_date)
+    query = filters_by_query(query, Book, q)
+    query = filter_by_period(query, Book, p)
 
     book_holdings_list = query.all()
 
