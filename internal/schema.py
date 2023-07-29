@@ -153,3 +153,17 @@ class BookReviewOut(BookReviewIn):
 # ADMIN - 전체/개별 Review 조회 RES
 class BookReviewOutAdmin(BookReviewOut):
     valid: bool
+
+
+# OrderBy
+class OrderBy:
+    def __init__(
+        self,
+        by_the_newest: bool | None = False, # 최신순: 신착도서 조회, 최신 소장 정보 조회
+        by_rating: bool | None = False, # 평점순: 인기도서 조회
+        by_publication_year: bool | None = False # 출판순
+        # 여기에 OrderBy 계속 추가하면 됨
+    ):
+        self.by_the_newest = by_the_newest
+        self.by_rating = by_rating
+        self.by_publication_year = by_publication_year
