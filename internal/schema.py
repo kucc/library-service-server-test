@@ -1,5 +1,5 @@
 from pydantic import BaseModel, validator
-import _datetime
+import datetime
 from typing import List
 
 # get_begin, get_end QUERY class
@@ -51,8 +51,8 @@ class BookInfoIn(BaseModel):
 
 class BookInfoOut(BookInfoIn):
     book_info_id: int
-    created_at: _datetime.datetime
-    updated_at: _datetime.datetime
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
     rating: float
 
 # ADMIN - 도서 정보 등록/수정 RES
@@ -100,8 +100,8 @@ class BookHoldIn(BaseModel):
 
 # ADMIN - 소장 정보 등록
 class BookHoldOut(BookHoldIn):
-    created_at: _datetime.datetime
-    updated_at: _datetime.datetime
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
     valid: bool
     book_id: int
 
@@ -119,7 +119,7 @@ class NoticeIn(BaseModel):
         orm_mode = True
 
 class NoticeOut(NoticeIn):
-    created_at: _datetime.datetime
-    updated_at: _datetime.datetime
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
     valid: bool
     notice_id: int
