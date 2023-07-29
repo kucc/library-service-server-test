@@ -1,5 +1,5 @@
 from pydantic import BaseModel, validator
-import _datetime
+import datetime
 from typing import List
 
 # get_begin, get_end QUERY class
@@ -51,8 +51,8 @@ class BookInfoIn(BaseModel):
 
 class BookInfoOut(BookInfoIn):
     book_info_id: int
-    created_at: _datetime.datetime
-    updated_at: _datetime.datetime
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
     rating: float
 
 # ADMIN - 도서 정보 등록/수정 RES
@@ -67,11 +67,15 @@ class HoldingID(BaseModel):
     def __init__(self, num):
         self.book_id = num
 
-# 도서 정보 리스트 조회 RES
+# BOOKS - 도서 정보 리스트 조회 RES
 class BookInfoList(BookInfoOut):
     holdings: List[HoldingID]
 
-# ADMIN - 소장 정보 검색
+# ADMIN - 도서 정보 리스트 조회 RES
+class BookInfoListAdmin(BookInfoOutAdmin):
+    holdings: List[HoldingID]
+
+# ADMIN - 소장 정보 조회 QUERY
 class BookHoldQuery:
     def __init__(self,
                  donor_name: str | None = None,
@@ -82,8 +86,7 @@ class BookHoldQuery:
         self.donor_name = donor_name
         self.book_status = book_status
 
-# ADMIN - 소장 정보 등록/수정
-
+# ADMIN - 소장 정보 등록/수정 REQ
 class BookHoldIn(BaseModel):
     book_info_id: int
     donor_name: str | None = None
@@ -99,18 +102,23 @@ class BookHoldIn(BaseModel):
     class Config:
         orm_mode = True
 
-# ADMIN - 소장 정보 등록
+# BOOKS - 소장 정보 조회 RES
 class BookHoldOut(BookHoldIn):
-    created_at: _datetime.datetime
-    updated_at: _datetime.datetime
-    valid: bool
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
     book_id: int
 
-# ADMIN - 개별 도서 정보 조회 RES
+class BookHoldOutAdmin(BookHoldOut):
+    valid: bool
+
+# Books - 개별 도서 정보 조회 RES
 class BookInfoByID(BookInfoOut):
     books : List[BookHoldOut]
 
-# NOTICE - 전체/개별 공지 조회 RES
+class BookInfoByIDAdmin(BookInfoOutAdmin):
+    books : List[BookHoldOutAdmin]
+
+# NOTICE - 전체/개별 공지 조회 REQ
 class NoticeIn(BaseModel):
     title: str
     notice_content: str
@@ -119,15 +127,17 @@ class NoticeIn(BaseModel):
     class Config:
         orm_mode = True
 
+# NOTICE - 전체/개별 공지 조회 RES
 class NoticeOut(NoticeIn):
-    created_at: _datetime.datetime
-    updated_at: _datetime.datetime
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
     notice_id: int
 
+# ADMIN - 전체/개별 공지 조회 RES
 class NoticeOutAdmin(NoticeOut):
     valid: bool
 
-# USERS - Review 생성시, 클라이언트가 입력해야 할 클래스
+# USERS - Book Review 등록 REQ
 class BookReviewIn(BaseModel):
     user_id: int
     book_info_id: int
@@ -137,21 +147,9 @@ class BookReviewIn(BaseModel):
 # BOOKS - 전체/개별 Review 조회 RES
 class BookReviewOut(BookReviewIn):
     review_id: int
-    created_at: _datetime.datetime
-    updated_at: _datetime.datetime
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
 
+# ADMIN - 전체/개별 Review 조회 RES
 class BookReviewOutAdmin(BookReviewOut):
     valid: bool
-
-# OrderBy
-class OrderBy:
-    def __init__(
-        self,
-        by_the_newest: bool | None = False, # 최신순: 신착도서 조회, 최신 소장 정보 조회
-        by_rating: bool | None = False, # 평점순: 인기도서 조회
-        by_publication_year: bool | None = False # 출판순
-        # 여기에 OrderBy 계속 추가하면 됨
-    ):
-        self.by_the_newest = by_the_newest
-        self.by_rating = by_rating
-        self.by_publication_year = by_publication_year
