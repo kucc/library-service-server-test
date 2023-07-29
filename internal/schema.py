@@ -2,8 +2,16 @@ from pydantic import BaseModel, validator
 import _datetime
 from typing import List
 
-# TODO ADMIN - BOOK SELECT를 위한 클래스 만들기
+# get_begin, get_end QUERY class
+class PeriodQuery:
+    def __init__(self,
+                 get_begin: str | None = None,
+                 get_end: str | None = None,
+                 ):
+        self.get_begin = get_begin
+        self.get_end = get_end
 
+# TODO ADMIN - BOOK SELECT를 위한 클래스 만들기
 # ADMIN - 도서 정보 검색 REQ
 class BookInfoQuery:
     def __init__(
