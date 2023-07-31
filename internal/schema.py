@@ -1,15 +1,22 @@
 from pydantic import BaseModel, validator
-import datetime
 from typing import List
+from internal.key_validation import InvalidDateFormatError
+import datetime
 
 # get_begin, get_end QUERY class
-class PeriodQuery:
-    def __init__(self,
-                 get_begin: str | None = None,
-                 get_end: str | None = None,
-                 ):
-        self.get_begin = get_begin
-        self.get_end = get_end
+class PeriodQuery(BaseModel):
+    get_begin: str | None
+    get_end: str | None
+
+    @validator('get_begin', 'get_end')
+    def check_date_format(cls, value):
+        if value:
+            try:
+                value = datetime.datetime.strptime(value, "%Y-%m-%d")
+            except ValueError:
+                raise InvalidDateFormatError()
+            return value
+
 
 # TODO ADMIN - BOOK SELECT를 위한 클래스 만들기
 # ADMIN - 도서 정보 검색 REQ
@@ -21,7 +28,7 @@ class BookInfoQuery:
             major: bool | None = None,
             publication_year: int | None = None,
             publisher: str | None = None,
-            category_id: int | None = None,
+            category: int | None = None,
             copied: bool | None = None
     ):
         self.title = title
@@ -29,8 +36,9 @@ class BookInfoQuery:
         self.major = major
         self.publication_year = publication_year
         self.publisher = publisher
-        self.category_id = category_id
+        self.category = category
         self.copied = copied
+
 
 # ADMIN - 도서 정보 등록 REQ
 class BookInfoIn(BaseModel):
@@ -49,15 +57,18 @@ class BookInfoIn(BaseModel):
     class Config:
         orm_mode = True
 
+
 class BookInfoOut(BookInfoIn):
     book_info_id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
     rating: float
 
+
 # ADMIN - 도서 정보 등록/수정 RES
 class BookInfoOutAdmin(BookInfoOut):
     valid: bool
+
 
 # book_id element for holdings list
 class HoldingID(BaseModel):
@@ -67,13 +78,16 @@ class HoldingID(BaseModel):
     def __init__(self, num):
         self.book_id = num
 
+
 # BOOKS - 도서 정보 리스트 조회 RES
 class BookInfoList(BookInfoOut):
     holdings: List[HoldingID]
 
+
 # ADMIN - 도서 정보 리스트 조회 RES
 class BookInfoListAdmin(BookInfoOutAdmin):
     holdings: List[HoldingID]
+
 
 # ADMIN - 소장 정보 조회 QUERY
 class BookHoldQuery:
@@ -86,6 +100,7 @@ class BookHoldQuery:
         self.donor_name = donor_name
         self.book_status = book_status
 
+
 # ADMIN - 소장 정보 등록/수정 REQ
 class BookHoldIn(BaseModel):
     book_info_id: int
@@ -94,13 +109,14 @@ class BookHoldIn(BaseModel):
     note: str | None = None
 
     @validator('book_status')
-    def valid_status(cls, book_status: int):
-        if book_status < 0 or book_status > 3:
+    def valid_status(cls, value):
+        if value < 0 or value > 3:
             raise ValueError("book status is out of range!")
-        return book_status
+        return value
 
     class Config:
         orm_mode = True
+
 
 # BOOKS - 소장 정보 조회 RES
 class BookHoldOut(BookHoldIn):
@@ -108,15 +124,19 @@ class BookHoldOut(BookHoldIn):
     updated_at: datetime.datetime
     book_id: int
 
+
 class BookHoldOutAdmin(BookHoldOut):
     valid: bool
 
+
 # Books - 개별 도서 정보 조회 RES
 class BookInfoByID(BookInfoOut):
-    books : List[BookHoldOut]
+    books: List[BookHoldOut]
+
 
 class BookInfoByIDAdmin(BookInfoOutAdmin):
-    books : List[BookHoldOutAdmin]
+    books: List[BookHoldOutAdmin]
+
 
 # NOTICE - 전체/개별 공지 조회 REQ
 class NoticeIn(BaseModel):
@@ -127,15 +147,18 @@ class NoticeIn(BaseModel):
     class Config:
         orm_mode = True
 
+
 # NOTICE - 전체/개별 공지 조회 RES
 class NoticeOut(NoticeIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     notice_id: int
 
+
 # ADMIN - 전체/개별 공지 조회 RES
 class NoticeOutAdmin(NoticeOut):
     valid: bool
+
 
 # USERS - Book Review 등록 REQ
 class BookReviewIn(BaseModel):
@@ -144,11 +167,13 @@ class BookReviewIn(BaseModel):
     review_content: str
     rating: float
 
+
 # BOOKS - 전체/개별 Review 조회 RES
 class BookReviewOut(BookReviewIn):
     review_id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
+
 
 # ADMIN - 전체/개별 Review 조회 RES
 class BookReviewOutAdmin(BookReviewOut):
@@ -158,11 +183,11 @@ class BookReviewOutAdmin(BookReviewOut):
 # OrderBy
 class OrderBy:
     def __init__(
-        self,
-        by_the_newest: bool | None = False, # 최신순: 신착도서 조회, 최신 소장 정보 조회
-        by_rating: bool | None = False, # 평점순: 인기도서 조회
-        by_publication_year: bool | None = False # 출판순
-        # 여기에 OrderBy 계속 추가하면 됨
+            self,
+            by_the_newest: bool | None = False,  # 최신순: 신착도서 조회, 최신 소장 정보 조회
+            by_rating: bool | None = False,  # 평점순: 인기도서 조회
+            by_publication_year: bool | None = False  # 출판순
+            # 여기에 OrderBy 계속 추가하면 됨
     ):
         self.by_the_newest = by_the_newest
         self.by_rating = by_rating
