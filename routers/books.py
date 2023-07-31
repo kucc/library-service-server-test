@@ -14,6 +14,7 @@ router = APIRouter(prefix="/books", tags=["books"])
 
 # /books 경로에 대한 핸들러 함수 (전체 도서 정보 조회)
 @router.get(
+        "",
         status_code=status.HTTP_200_OK,
         response_model=List[BookInfoOut],
         response_description="Success to get all book-info information list"
@@ -185,79 +186,79 @@ async def get_book_holding(
         raise ItemKeyValidationError(detail=("book_id", book_id))
     
 
-# 전체 도서 후기 조회
-@router.get("/{book_info_id}/reviews",
-        status_code=status.HTTP_200_OK,
-        response_model=List[BookReviewOut],
-        response_description="Success to get all book-review lists"
-        )
-def get_book_review_list(
-    book_info_id: int,
-    skip: int | None = 0,
-    limit: int | None = 10,
+# # 전체 도서 후기 조회
+# @router.get("/{book_info_id}/reviews",
+#         status_code=status.HTTP_200_OK,
+#         response_model=List[BookReviewOut],
+#         response_description="Success to get all book-review lists"
+#         )
+# def get_book_review_list(
+#     book_info_id: int,
+#     skip: int | None = 0,
+#     limit: int | None = 10,
+#
+#     q: BookReviewOut = Depends(),
+#     o: OrderBy = Depends(),
+#
+#     get_begin: str | None = None,
+#     get_end: str | None = None,
+#
+#     db: Session = Depends(get_db)
+#     ):
+#
+#     #---------------------Query Parameter를 통한 필터링!---------------------------
+#     query = db.query(BookReview)
+#     if q.book_info_id:
+#         query = query.filter(BookReview.book_info_id == q.book_info_id)
+#     if q.user_id:
+#         query = query.filter(BookReview.user_id == q.user_id)
+#     if q.review_id:
+#         query = query.filter(BookReview.review_id == q.review_id)
+#     if q.review_content:
+#         query = query.filter(BookReview.review_content.ilike("f"%{q.review_content}%""))
+#
+#     if get_begin:
+#
+#     if get_end:
+#
+#     query = query.order_by(BookReview.book_info_id.asc(), BookReview.review_id.asc())
+#
+#     if o.by_created_at:
+#         return book_review_list
 
-    q: BookReviewOut = Depends(),
-    o: OrderBy = Depends(),
-
-    get_begin: str | None = None,
-    get_end: str | None = None,
-
-    db: Session = Depends(get_db)
-    ):
-
-    #---------------------Query Parameter를 통한 필터링!---------------------------
-    query = db.query(BookReview)
-    if q.book_info_id:
-        query = query.filter(BookReview.book_info_id == q.book_info_id)
-    if q.user_id:
-        query = query.filter(BookReview.user_id == q.user_id)
-    if q.review_id:
-        query = query.filter(BookReview.review_id == q.review_id)
-    if q.review_content:
-        query = query.filter(BookReview.review_content.ilike("f"%{q.review_content}%""))
-    
-    if get_begin:
-
-    if get_end:
-    
-    query = query.order_by(BookReview.book_info_id.asc(), BookReview.review_id.asc())
-    
-    if o.by_created_at:
-        return book_review_list
 
 
-
-# 개별 도서 후기 조회
-@router.get("/{book_info_id}/reviews/{review_id}")
-def get_book_review(
-    book_info_id: int,
-    review_id: int
-    ):
-    try:
-        book_review = session.query(BookReview).filter(BookReview.book_info_id == book_info_id).all()
-    except TypeError:
-        raise HTTPException(status_code=400, detail="Bad request: book information ID must be integer")
-    except:
-        raise HTTPException(status_code=404, detail="Item not found in BookReview")
-    
-    try:
-        book_review = book_review.filter(BookReview.review_id == review_id).one()
-    except TypeError:
-        raise HTTPException(status_code=400, detail="Bad request: review ID must be integer")
-    except:
-        raise HTTPException(status_code=404, detail="Item not found in BookReview")
-    
-    if book_review:
-        return {
-            "code": status.HTTP_200_OK,
-            "message": "Success to get book review",
-            "result": book_review
-        }
-    else:
-        return {
-            "code": status.HTTP_204_NO_CONTENT,
-            "message": "Fail to get book review"
-        }
+# # 개별 도서 후기 조회
+# @router.get("/{book_info_id}/reviews/{review_id}")
+# def get_book_review(
+#     book_info_id: int,
+#     review_id: int
+#     ):
+#     try:
+#         book_review = db.query(BookReview).filter(BookReview.book_info_id == book_info_id).all()
+#     except TypeError:
+#         raise HTTPException(status_code=400, detail="Bad request: book information ID must be integer")
+#     except:
+#         raise HTTPException(status_code=404, detail="Item not found in BookReview")
+#
+#     try:
+#         book_review = book_review.filter(BookReview.review_id == review_id).one()
+#     except TypeError:
+#         raise HTTPException(status_code=400, detail="Bad request: review ID must be integer")
+#     except:
+#         raise HTTPException(status_code=404, detail="Item not found in BookReview")
+#
+#     if book_review:
+#         return {
+#             "code": status.HTTP_200_OK,
+#             "message": "Success to get book review",
+#             "result": book_review
+#         }
+#     else:
+#         return {
+#             "code": status.HTTP_204_NO_CONTENT,
+#             "message": "Fail to get book review"
+#         }
 
 '''
 # 신착 도서 조회
