@@ -249,7 +249,7 @@ async def update_book_holding(
                status_code=status.HTTP_204_NO_CONTENT,
                response_description="Success to remove the book holding"
                )
-async def delete_book_info(
+async def delete_book_holding(
         book_id: int,
         db: Session = Depends(get_db)
 ):
