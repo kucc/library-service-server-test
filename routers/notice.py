@@ -1,120 +1,84 @@
-from fastapi import APIRouter, status, Query, HTTPException,Depends
-from typing import Optional
+from fastapi import APIRouter, status, Query, HTTPException, Depends
 from database import get_db
+from internal.key_validation import ItemKeyValidationError
+from internal.schema import NoticeOut
 from models import Notice
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+from typing import List
 
-router = APIRouter(prefix="/notices", tags=["notices"], responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
+router = APIRouter(prefix="/notices", tags=["notices"])
 
-# about handler
+
 # /notice 경로에 대한 핸들러 함수
-@router.get("/", )
-def get_notices(
-    author: Optional[int] = None,
-    title: Optional[str] = None,
-    get_begin: Optional[str] = None,
-    get_end: Optional[str] = None,
-
-    db: Session = Depends(get_db)
-) :
-    # Validate author and title parameters
-    if author is not None and not isinstance(author, int):
-        return {
-            "code": status.HTTP_400_BAD_REQUEST,
-            "message": "Invalid author ID",
-        }
-    if title is not None and not isinstance(title, str):
-        return {
-            "code": status.HTTP_400_BAD_REQUEST,
-            "message": "Invalid title",
-        }
-
+@router.get("/",
+            status_code=status.HTTP_200_OK,
+            response_model=List[NoticeOut],
+            response_description="Success to get the list of notice"
+            )
+async def get_notice_list(
+        get_begin: str = Query(None),
+        get_end: str = Query(None),
+        title: str = Query(None),
+        author: int = Query(None),
+        db: Session = Depends(get_db)
+):
     query = db.query(Notice)
 
     # Filter by author
-    if author :
+    if author:
         query = query.filter(Notice.author_id == author)
 
     # Filter by title
-    if title :
-        query = query.filter(Notice.title.contains(title))
+    if title:
+        query = query.filter(Notice.title.ilike(f"%{title}%"))
 
     # Parse begin_date parameter
     if get_begin is not None:
         try:
             begin_date = datetime.strptime(get_begin, "%Y-%m-%d")
         except ValueError:
-            return {
-                "code": status.HTTP_400_BAD_REQUEST,
-                "message": "Invalid begin_date format. It should be in YY-MM-DD format.",
-            }
-        if begin_date > datetime.now():
-            return {
-                "code": status.HTTP_400_BAD_REQUEST,
-                "message": "Invalid begin_date. It cannot be in the future.",
-            }
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Invalid begin_date format. It should be in YY-MM-DD format.")
+        else:
+            if begin_date > datetime.now():
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Invalid begin_date. It cannot be in the future.")
     else:
         begin_date = datetime.now() - timedelta(days=60)
 
-    query = query.filter(Notice.updated_at >= begin_date)
+    query = query.filter(begin_date <= Notice.updated_at)
 
     # Parse end_date parameter
     if get_end is not None:
         try:
             end_date = datetime.strptime(get_end, "%Y-%m-%d")
         except ValueError:
-            return {
-                "code": status.HTTP_400_BAD_REQUEST,
-                "message": "Invalid end_date format. It should be in YYYY-MM-DD format.",
-            }
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Invalid begin_date format. It should be in YY-MM-DD format.")
     else:
         end_date = datetime.now()
 
     query = query.filter(Notice.updated_at <= end_date)
 
     notices = query.all()
-
-    if notices is not None:
-        if notices:
-            return {
-                "code": status.HTTP_200_OK,
-                "message": "success to get list of notice",
-                "result": notices,
-            }
-        else :
-            return {
-                "code": status.HTTP_204_NO_CONTENT,
-                "message": "In the request was successfully processed, but there is no content to return.",
-                "result": [],
-            }
+    if notices:
+        return notices
     else:
-        return {
-            "code": status.HTTP_204_NO_CONTENT,
-            "message": "In the request was successfully processed, but there is NoneType object.",
-            "result": []
-        }
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-@router.get("/{notice_id}")
-def get_notice(notice_id : int, db: Session = Depends(get_db)):
-    query = db.query(Notice)
-    notice = query.filter(Notice.notice_id == notice_id).one()
-    if notice is not None:
-        if notice :
-            return {
-                "code": status.HTTP_200_OK,
-                "message": "success to get notice",
-                "result": notice
-            }
-        else:
-            return {
-                "code": status.HTTP_204_NO_CONTENT,
-                "message": "In the request was successfully processed, but there is no content to return.",
-                "result": []
-            }
-    else :
-        return {
-            "code": status.HTTP_204_NO_CONTENT,
-            "message": "In the request was successfully processed, but there is NoneType object.",
-            "result": []
-        }
+
+@router.get("/{notice_id}",
+            status_code=status.HTTP_200_OK,
+            response_model=NoticeOut,
+            response_description="Success to get the notice by ID"
+            )
+async def get_notice(
+        notice_id: int,
+        db: Session = Depends(get_db)
+):
+    notice = db.query(Notice).filter(Notice.notice_id == notice_id).first()
+    if notice:
+        return notice
+    else:
+        raise ItemKeyValidationError(detail=("notice_id", notice_id))
