@@ -1,7 +1,7 @@
 #  RUN ::
 #  uvicorn main:app --reload
 from fastapi import FastAPI
-from routers import users, books, notice
+from routers import users, notice, books
 from internal import admins, auth
 
 # 테스트용
@@ -17,7 +17,7 @@ app.include_router(notice.router)
 app.include_router(admins.router)
 app.include_router(auth.router)
 
-## root
+# root
 @app.get("/")
 async def root():
     result = {'greet': "hello kucc"}
@@ -26,4 +26,4 @@ async def root():
 # /search 경로에 대한 핸들러 함수
 @app.get("/search")
 async def get_search():
-    return {'message' : "search"}
+    return {'message': "search"}
