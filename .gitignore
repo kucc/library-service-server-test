@@ -36,6 +36,9 @@ firebase
 firebasescrypt
 routers/auth.py
 kucc-lib-keykey.pem
+temp.py
+code-practice
+auth_temp.py
 
 # SuBin
 .idea
