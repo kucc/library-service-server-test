@@ -160,12 +160,33 @@ class NoticeOutAdmin(NoticeOut):
     valid: bool
 
 
+# BOOKS - 도서 후기 조회 REQ
+class BookReviewQuery:
+    def __init__(
+            self,
+            review_id: int | None = None,
+            book_info_id: int | None = None,
+            review_content: str | None = None,
+            rating: float | None = None
+        ):
+        self.review_id = review_id
+        self.book_info_id = book_info_id
+        self.review_content = review_content
+        self.rating = rating
+        
+
 # USERS - Book Review 등록 REQ
 class BookReviewIn(BaseModel):
     user_id: int
     book_info_id: int
     review_content: str
     rating: float
+
+    @validator('rating')
+    def valid_status(cls, value):
+        if value < 0 or value > 5.0:
+            raise ValueError("rating is out of range!")
+        return value
 
 
 # BOOKS - 전체/개별 Review 조회 RES
@@ -181,14 +202,16 @@ class BookReviewOutAdmin(BookReviewOut):
 
 
 # OrderBy
+# 1. None: 정렬 안함
+# 2. false: 평점 낮은 순, 등록일/출판년도 오래된 순
+# 3. true: 높은 순, 최신순
+# order_by 적용 마지막엔 항상 제목 오름차순 정렬을 기본으로 설정할 것
 class OrderBy:
-    def __init__(
-            self,
-            by_the_newest: bool | None = False,  # 최신순: 신착도서 조회, 최신 소장 정보 조회
-            by_rating: bool | None = False,  # 평점순: 인기도서 조회
-            by_publication_year: bool | None = False  # 출판순
-            # 여기에 OrderBy 계속 추가하면 됨
-    ):
-        self.by_the_newest = by_the_newest
-        self.by_rating = by_rating
+    def __init__(self,
+            by_publication_year: bool | None = None, # 출판순: publication_year 기준
+            by_rating: bool | None = None, # 평점순: rating 기준
+            by_the_newest: bool | None = None # 최신순: created_at 기준
+        ):
         self.by_publication_year = by_publication_year
+        self.by_rating = by_rating
+        self.by_the_newest = by_the_newest
