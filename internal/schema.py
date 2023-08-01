@@ -205,13 +205,16 @@ class BookReviewOutAdmin(BookReviewOut):
 # 1. None: 정렬 안함
 # 2. false: 평점 낮은 순, 등록일/출판년도 오래된 순
 # 3. true: 높은 순, 최신순
-# order_by 적용 마지막엔 항상 제목 오름차순 정렬을 기본으로 설정할 것
+# 제목은 None인 경우 오름차순 정렬을 기본으로 설정
 class OrderBy:
     def __init__(self,
             by_publication_year: bool | None = None, # 출판순: publication_year 기준
             by_rating: bool | None = None, # 평점순: rating 기준
-            by_the_newest: bool | None = None # 최신순: created_at 기준
+            by_the_newest: bool | None = None, # 최신순: created_at 기준
+            by_title: bool | None = False # 제목순: title 기준
         ):
-        self.by_publication_year = by_publication_year
-        self.by_rating = by_rating
-        self.by_the_newest = by_the_newest
+        self.publication_year = by_publication_year
+        self.rating = by_rating
+        self.created_at = by_the_newest
+        self.title = by_title
+        
