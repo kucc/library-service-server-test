@@ -1,28 +1,25 @@
 ### internal\auth.py
 from typing import Annotated
+
 from fastapi import APIRouter, Response, status, HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
+
 from database import get_db
-from models import User, Admin
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from models import User, Admin
 
-# basic auth
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from config import Settings
 import secrets
 
+settings = Settings()
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-security = HTTPBasic()  # basic auth
+oauth2_scheme = OAuth2PasswordBearer(tokenURL="token")
 
 class User(BaseModel):
     email: str
     password: str
     salt: str | None
-
-@router.get("/me")  # basic auth
-def read_current_user(credentials: Annotated[HTTPBasicCredentials, Depends(security)]):
-    return {"username": credentials.username, "password": credentials.password}
 
 # /auth 경로에 대한 핸들러 함수
 @router.get("/")
