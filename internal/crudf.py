@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from datetime import datetime, time
-from internal.key_validation import *
+from internal.custom_exception import *
 from internal.schema import *
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
@@ -40,6 +40,20 @@ def filters_by_query(query, model, q):
                 query = query.filter(getattr(model, attr) == value)
     return query
 
+
+# order_by 간소화 함수
+def orders_by_query(query, model, o):
+    for attr, value in o.__dict__.items():
+        try:
+            if value is None:
+                continue
+            if value is False:
+                query = query.order_by(getattr(model, attr).asc())
+            if value is True:
+                query = query.order_by(getattr(model, attr).desc())
+        except AttributeError:
+            continue
+    return query
 
 # 명시적 외래키 값 존재 확인
 # 성능 최적화 또는 자세한 오류 처리와 같이 데이터를 삽입하기 전에 외래 키 값의 존재를 확인해야 하는 특정 요구 사항이 있는 경우

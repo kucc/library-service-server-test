@@ -7,7 +7,8 @@ load_dotenv() # take environment variables from .env.
 DB_DB = os.getenv("DB_DB")
 DB_HOST = os.getenv("DB_HOST")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_PORT = os.getenv("DB_PORT")
+
+DB_PORT = int(os.getenv("DB_PORT")) # 테스트용
 DB_USER = os.getenv("DB_USER")
 
 # firebase authentication & authorization
@@ -22,7 +23,7 @@ class Settings(BaseSettings):
     db_db: str = DB_DB
     db_host: str = DB_HOST
     db_password: str = DB_PASSWORD
-    db_port: str = DB_PORT
+    db_port: int = DB_PORT
     db_user: str = DB_USER
 
     fb_salt_separator: str = FB_SALT_SEPARATOR
