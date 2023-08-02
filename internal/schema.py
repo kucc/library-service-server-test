@@ -57,6 +57,13 @@ class BookInfoIn(BaseModel):
     class Config:
         orm_mode = True
 
+# ADMIN - 도서 정보 수정 REQ
+class BookInfoUpdate(BookInfoIn):
+    title: str | None
+    category_id: str | None
+    author: str | None
+    publisher: str | None
+    publication_year: str | None
 
 class BookInfoOut(BookInfoIn):
     book_info_id: int
@@ -117,13 +124,16 @@ class BookHoldIn(BaseModel):
     class Config:
         orm_mode = True
 
+class BookHoldUpdate(BookHoldIn):
+    book_info_id: int | None
+    book_status: int | None
+    valid : bool | None
 
 # BOOKS - 소장 정보 조회 RES
 class BookHoldOut(BookHoldIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     book_id: int
-
 
 class BookHoldOutAdmin(BookHoldOut):
     valid: bool
@@ -160,21 +170,6 @@ class NoticeOutAdmin(NoticeOut):
     valid: bool
 
 
-# BOOKS - 도서 후기 조회 REQ
-class BookReviewQuery:
-    def __init__(
-            self,
-            review_id: int | None = None,
-            book_info_id: int | None = None,
-            review_content: str | None = None,
-            rating: float | None = None
-        ):
-        self.review_id = review_id
-        self.book_info_id = book_info_id
-        self.review_content = review_content
-        self.rating = rating
-        
-
 # USERS - Book Review 등록 REQ
 class BookReviewIn(BaseModel):
     user_id: int
@@ -182,11 +177,8 @@ class BookReviewIn(BaseModel):
     review_content: str
     rating: float
 
-    @validator('rating')
-    def valid_status(cls, value):
-        if value < 0 or value > 5.0:
-            raise ValueError("rating is out of range!")
-        return value
+    class Config:
+        orm_mode = True
 
 
 # BOOKS - 전체/개별 Review 조회 RES
@@ -217,4 +209,3 @@ class OrderBy:
         self.rating = by_rating
         self.created_at = by_the_newest
         self.title = by_title
-        
