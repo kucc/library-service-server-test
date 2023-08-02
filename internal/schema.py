@@ -57,6 +57,13 @@ class BookInfoIn(BaseModel):
     class Config:
         orm_mode = True
 
+# ADMIN - 도서 정보 수정 REQ
+class BookInfoUpdate(BookInfoIn):
+    title: str | None
+    category_id: str | None
+    author: str | None
+    publisher: str | None
+    publication_year: str | None
 
 class BookInfoOut(BookInfoIn):
     book_info_id: int
@@ -117,13 +124,16 @@ class BookHoldIn(BaseModel):
     class Config:
         orm_mode = True
 
+class BookHoldUpdate(BookHoldIn):
+    book_info_id: int | None
+    book_status: int | None
+    valid : bool | None
 
 # BOOKS - 소장 정보 조회 RES
 class BookHoldOut(BookHoldIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     book_id: int
-
 
 class BookHoldOutAdmin(BookHoldOut):
     valid: bool
