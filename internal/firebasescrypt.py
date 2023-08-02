@@ -49,7 +49,6 @@ def encrypt(signer_key: bytes, derived_key: bytes) -> bytes:
 
     return result
     
-
 def verify_password(
     password: str,
     known_hash: str,
