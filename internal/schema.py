@@ -169,6 +169,11 @@ class NoticeOut(NoticeIn):
 class NoticeOutAdmin(NoticeOut):
     valid: bool
 
+# Books - 전체 도서 후기 조회 QUERY
+# TODO : review_content, rating
+class BookReviewQuery:
+    user_id = int | None
+    book_info_id = int | None
 
 # USERS - Book Review 등록 REQ
 class BookReviewIn(BaseModel):

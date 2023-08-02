@@ -1,13 +1,13 @@
 from fastapi import HTTPException, status
-from datetime import datetime, time
 from internal.custom_exception import *
 from internal.schema import *
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.inspection import inspect
+from datetime import datetime, time
 
-def filter_by_period(query, model, p, use_updated_at: bool):
+def filter_by_period(query, model, p, use_updated_at: bool | None = False):
     '''
     조회 기간을 기준으로 한 filtering
     :param query: database session의 query
@@ -44,6 +44,7 @@ def filters_by_query(query, model, q):
 # order_by 간소화 함수
 def orders_by_query(query, model, o):
     for attr, value in o.__dict__.items():
+        print(attr, value)
         try:
             if value is None:
                 continue
@@ -97,11 +98,13 @@ def get_item_by_id(model, index, db):
 
 
 # get list of item
-def get_list_of_item(model, skip, limit, use_update_at, q, p, db):
+## valid = True인 것만 조회
+def get_list_of_item(model, skip, limit, use_update_at, q, p, o, db):
     query = db.query(model)
     query = filters_by_query(query, model, q)
     query = filter_by_period(query, model, p, use_update_at)
     query = query.filter(model.valid)
+    query = orders_by_query(query, model, o)
     result = query.offset(skip).limit(limit).all()
     if not result:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")

@@ -153,20 +153,24 @@ async def delete_book_info(
 async def get_book_holdings_info(
         skip: int | None = 0,
         limit: int | None = 10,
+        use_update_at : bool | None = False,
         q: BookHoldQuery = Depends(),
         p: PeriodQuery = Depends(),
+        o: OrderBy = Depends(),
         db: Session = Depends(get_db)
 ):
-    query = db.query(Book)
-    query = filters_by_query(query, Book, q)
-    query = filter_by_period(query, Book, p)
 
-    book_holdings_list = query.all()
-
-    if book_holdings_list:
-        return book_holdings_list[skip: skip + limit]
-    else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    return get_list_of_item(Book, skip, limit, use_update_at, q, p, o, db)
+    # query = db.query(Book)
+    # query = filters_by_query(query, Book, q)
+    # query = filter_by_period(query, Book, p)
+    #
+    # book_holdings_list = query.all()
+    #
+    # if book_holdings_list:
+    #     return book_holdings_list[skip: skip + limit]
+    # else:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
 # 소장 정보 개별 조회
 @router.get('/book-holdings/{book_id}',
@@ -245,7 +249,7 @@ async def update_book_holding(
     return book
 
 # 소장 정보 삭제
-@router.delete('/book-info/{book_info_id}',
+@router.delete('/book-holdings/{book_id}',
                status_code=status.HTTP_204_NO_CONTENT,
                response_description="Success to remove the book holding"
                )
