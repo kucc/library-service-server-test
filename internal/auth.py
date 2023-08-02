@@ -1,25 +1,35 @@
-### internal\auth.py
+### internal/auth.py
 from typing import Annotated
 
-from fastapi import APIRouter, Response, status, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException,status, Response
 from fastapi.security import OAuth2PasswordBearer
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from database import get_db
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
 from models import User, Admin
-
 from config import Settings
-import secrets
+import firebasescrypt
 
-settings = Settings()
+from internal.custom_exception import ItemKeyValidationError, ForeignKeyValidationError
+from internal.schema import *
+from internal.crudf import *
+
 router = APIRouter(prefix="/auth", tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenURL="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+setting = Settings()
+
+salt_separator = setting.fb_salt_separator
+signer_key = setting.fb_signer_key
+rounds = setting.fb_rounds
+mem_cost = setting.fb_mem_cost
 
 class User(BaseModel):
     email: str
-    password: str
-    salt: str | None
+    username: str | None = None
+    status: bool
+    valid: bool
 
 # /auth 경로에 대한 핸들러 함수
 @router.get("/")
@@ -36,41 +46,3 @@ async def login(user: User, db: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     return user
-
-# 회원가입
-@router.post("/register")
-async def register(user: User, db: Session = Depends(get_db)):
-    user = User(**user.dict())
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-
-# 사용자 데이터를 가정한 간단한 데이터베이스
-fake_users_db = {
-    "user1": {
-        "email": "user1",
-        "password": "password1"
-    },
-    "user2": {
-        "email": "user2",
-        "password": "password2"
-    }
-}
-
-# 사용자 로그인을 확인하는 의존성 함수
-def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
-    user = fake_users_db.get(credentials.username)
-    if user is None or user["password"] != credentials.password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return user    
-
-# 로그아웃
-@router.post("/logout")
-async def logout(credentials: HTTPBasicCredentials = Depends(security)):
-    user = authenticate_user(credentials)
-    return {"token": credentials, "message": "logout success"}
