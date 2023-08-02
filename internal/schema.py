@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator
 from typing import List
-from internal.key_validation import InvalidDateFormatError
+from internal.custom_exception import InvalidDateFormatError
 import datetime
 
 # get_begin, get_end QUERY class
@@ -57,6 +57,13 @@ class BookInfoIn(BaseModel):
     class Config:
         orm_mode = True
 
+# ADMIN - 도서 정보 수정 REQ
+class BookInfoUpdate(BookInfoIn):
+    title: str | None
+    category_id: str | None
+    author: str | None
+    publisher: str | None
+    publication_year: str | None
 
 class BookInfoOut(BookInfoIn):
     book_info_id: int
@@ -117,13 +124,16 @@ class BookHoldIn(BaseModel):
     class Config:
         orm_mode = True
 
+class BookHoldUpdate(BookHoldIn):
+    book_info_id: int | None
+    book_status: int | None
+    valid : bool | None
 
 # BOOKS - 소장 정보 조회 RES
 class BookHoldOut(BookHoldIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     book_id: int
-
 
 class BookHoldOutAdmin(BookHoldOut):
     valid: bool
@@ -167,6 +177,9 @@ class BookReviewIn(BaseModel):
     review_content: str
     rating: float
 
+    class Config:
+        orm_mode = True
+
 
 # BOOKS - 전체/개별 Review 조회 RES
 class BookReviewOut(BookReviewIn):
@@ -181,14 +194,18 @@ class BookReviewOutAdmin(BookReviewOut):
 
 
 # OrderBy
+# 1. None: 정렬 안함
+# 2. false: 평점 낮은 순, 등록일/출판년도 오래된 순
+# 3. true: 높은 순, 최신순
+# 제목은 None인 경우 오름차순 정렬을 기본으로 설정
 class OrderBy:
-    def __init__(
-            self,
-            by_the_newest: bool | None = False,  # 최신순: 신착도서 조회, 최신 소장 정보 조회
-            by_rating: bool | None = False,  # 평점순: 인기도서 조회
-            by_publication_year: bool | None = False  # 출판순
-            # 여기에 OrderBy 계속 추가하면 됨
-    ):
-        self.by_the_newest = by_the_newest
-        self.by_rating = by_rating
-        self.by_publication_year = by_publication_year
+    def __init__(self,
+            by_publication_year: bool | None = None, # 출판순: publication_year 기준
+            by_rating: bool | None = None, # 평점순: rating 기준
+            by_the_newest: bool | None = None, # 최신순: created_at 기준
+            by_title: bool | None = False # 제목순: title 기준
+        ):
+        self.publication_year = by_publication_year
+        self.rating = by_rating
+        self.created_at = by_the_newest
+        self.title = by_title
