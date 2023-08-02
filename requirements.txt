@@ -13,6 +13,7 @@ packaging==23.1
 pluggy==1.2.0
 pycryptodome==3.18.0
 pydantic==1.10.10
+PyJWT==2.8.0
 PyMySQL==1.1.0
 pytest==7.4.0
 python-dotenv==1.0.0
