@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Query, HTTPException, Depends
 from database import get_db
-from internal.key_validation import ItemKeyValidationError
+from internal.custom_exception import ItemKeyValidationError
 from internal.schema import NoticeOut
 from models import Notice
 from datetime import datetime, timedelta

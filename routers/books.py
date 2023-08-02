@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, status, HTTPException
 from typing import Optional
 from database import get_db
-from internal.key_validation import ItemKeyValidationError, ForeignKeyValidationError
+from internal.custom_exception import ItemKeyValidationError, ForeignKeyValidationError
 from internal.schema import *
 from models import Book, BookInfo, BookReview, BookRequest
 from datetime import datetime, timedelta
