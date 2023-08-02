@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from datetime import datetime, time
-from internal.key_validation import *
+from internal.custom_exception import *
 from internal.schema import *
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
