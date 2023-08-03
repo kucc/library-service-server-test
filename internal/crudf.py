@@ -37,14 +37,16 @@ def filters_by_query(query, model, q):
             if isinstance(value, str):
                 query = query.filter(getattr(model, attr).ilike(f"%{value}%"))
             elif isinstance(value, (int, bool)):
-                query = query.filter(getattr(model, attr) == value)
+                if attr != 'rating':
+                    query = query.filter(getattr(model, attr) == value)
+                else :
+                    query = query.filter(value + 1 > getattr(model, attr) >= value)
     return query
 
 
 # order_by 간소화 함수
 def orders_by_query(query, model, o):
     for attr, value in o.__dict__.items():
-        print(attr, value)
         try:
             if value is None:
                 continue

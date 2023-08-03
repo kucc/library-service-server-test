@@ -174,6 +174,7 @@ class NoticeOutAdmin(NoticeOut):
 class BookReviewQuery:
     user_id = int | None
     book_info_id = int | None
+    rating = int | None
 
 # USERS - Book Review 등록 REQ
 class BookReviewIn(BaseModel):
