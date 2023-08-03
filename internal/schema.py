@@ -170,11 +170,24 @@ class NoticeOutAdmin(NoticeOut):
     valid: bool
 
 # Books - 전체 도서 후기 조회 QUERY
-# TODO : review_content, rating
 class BookReviewQuery:
-    user_id = int | None
-    book_info_id = int | None
-    rating = int | None
+    def __init__(self,
+                user_id = int | None,
+                rating = int | None
+            ):
+        self.user_id = user_id
+        self.rating = rating
+
+class BookReviewAdminQuery:
+    def __init__(self,
+                user_id = int | None,
+                book_info_id = int | None,
+                rating = int | None
+            ):
+        self.user_id = user_id
+        self.book_info_id = book_info_id
+        self.rating = rating
+
 
 # USERS - Book Review 등록 REQ
 class BookReviewIn(BaseModel):
