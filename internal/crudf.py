@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from internal.custom_exception import *
 from internal.schema import *
-from sqlalchemy import text
+from sqlalchemy import text, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.inspection import inspect
@@ -39,8 +39,9 @@ def filters_by_query(query, model, q):
             elif isinstance(value, (int, bool)):
                 if attr != 'rating':
                     query = query.filter(getattr(model, attr) == value)
-                else :
-                    query = query.filter(value + 1 > getattr(model, attr) >= value)
+                else:
+                    filter_expression = and_(value + 1 > getattr(model, attr), getattr(model, attr) >= value)
+                    query = query.filter(filter_expression)
     return query
 
 
@@ -113,7 +114,19 @@ def get_list_of_item(model, skip, limit, use_update_at, q, p, o, db):
 
     return result
 
+def get_list_by_id_query(model, key, value, skip, limit, use_update_at, q, p, o, db):
+    for column in model.__table__.columns:
+        if column.name == key:
+            query = db.query(model).filter(getattr(model, key) == value)
+    query = filters_by_query(query, model, q)
+    query = filter_by_period(query, model, p, use_update_at)
+    query = query.filter(model.valid)
+    query = orders_by_query(query, model, o)
+    result = query.offset(skip).limit(limit).all()
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
+    return result
 # create
 def create_item(model, req, db):
     item = model(**req.dict())

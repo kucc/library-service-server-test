@@ -172,17 +172,17 @@ class NoticeOutAdmin(NoticeOut):
 # Books - 전체 도서 후기 조회 QUERY
 class BookReviewQuery:
     def __init__(self,
-                user_id = int | None,
-                rating = int | None
+                user_id : int | None = None,
+                rating : int | None = None
             ):
         self.user_id = user_id
         self.rating = rating
 
 class BookReviewAdminQuery:
     def __init__(self,
-                user_id = int | None,
-                book_info_id = int | None,
-                rating = int | None
+                user_id : int | None = None,
+                book_info_id : int | None = None,
+                rating : int | None = None
             ):
         self.user_id = user_id
         self.book_info_id = book_info_id
