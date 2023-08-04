@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from jose import jwt
 from database import get_db
 from sqlalchemy.orm import Session
+from internal import firebasescrypt
+
 
 oauth2scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -47,7 +49,7 @@ def get_hashed_password(password: str) -> str:
 
 # 비밀번호 검증
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return plain_password == hashed_password
+    return firebasescrypt.verify(plain_password, hashed_password)
 
 # 사용법: https://essenceofinvesting.tistory.com/114
 # 공식 문서: https://pypi.org/project/python-jose/
@@ -81,6 +83,10 @@ def decode_token(token: str):
 def get_user(token: str, db: Session):
     if token in db.query(User).filter(User.email == token).first():
         return db.query(User).filter(User.email == token).first()
+
+def get_user(email: str, db: Session):
+    if email in db.query(User).filter(User.email == email).first():
+        return db.query(User).filter(User.email == email).first()
 
 # 토큰 검증
 async def get_current_user(token: str = Depends(oauth2scheme)):

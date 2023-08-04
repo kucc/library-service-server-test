@@ -11,7 +11,6 @@ from sqlalchemy.exc import IntegrityError
 
 from models import User, Admin, Book
 from config import Settings
-from internal import firebasescrypt
 from internal.salt import *
 from internal.auth_dependency_schema import *
 
@@ -36,30 +35,8 @@ async def get_auths(
     auths = db.query(UserIn).all()
     if auths:
         return auths
-
-# 사용자 명으로 모델 객체 리턴
-def get_user(email: str, db: Session):
-    if email in db.query(User).filter(User.email == email).first():
-        return db.query(User).filter(User.email == email).first()
-
-# password 검증
-def verify_password(plain_password: str, hashed_password: str):
-    return firebasescrypt.verify(plain_password, hashed_password)
-
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"}
-    )
-    user = get_user(token, get_db())
-    if user is None:
-        raise credentials_exception
-    return user
-
-@router.get("/items/")
-async def read_items(token: str = Depends(oauth2_scheme)):
-    return {"token": token}
+    else:
+        raise HTTPException(status_code=404, detail="No auths found")
 
 # 로그인
 @router.post("/login",
@@ -98,7 +75,6 @@ async def register(req: UserIn, db: Session = Depends(get_db)):
 
     - password:
     """
-
 
 # 비밀번호 변경
 @router.post("/password")
