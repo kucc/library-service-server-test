@@ -12,11 +12,12 @@ from sqlalchemy.exc import IntegrityError
 from models import User, Admin, Book
 from config import Settings
 from internal import firebasescrypt
+from internal.salt import *
+from internal.auth_dependency_schema import *
 
 from internal.custom_exception import ItemKeyValidationError, ForeignKeyValidationError
 from internal.schema import *
 from internal.crudf import *
-from internal.salt import *
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
