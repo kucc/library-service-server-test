@@ -91,13 +91,4 @@ async def change_password(req: UserIn, db: Session = Depends(get_db)):
 # 로그아웃
 @router.post("/logout")
 async def logout(req: UserIn, db: Session = Depends(get_db)):
-    """Logs out a user and returns a token
-    on successful creation.
-
-    request body:
-
-    - username: Unique identifier for a user e.g email, 
-                phone number, name
-
-    - password:
-    """
+    return {"message": "Logout successfully"}
