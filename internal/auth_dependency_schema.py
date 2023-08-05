@@ -1,55 +1,72 @@
+from datetime import datetime, timedelta
 from typing import Annotated, Union, Any
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel, validator
-# from typing import List
-# from internal.custom_exception import InvalidDateFormatError
-import os
-from datetime import datetime, timedelta
-from jose import jwt
-from database import get_db
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from jose import jwt
+
+from database import get_db
+
 from internal import firebasescrypt
 
-
-oauth2scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 ########## schema ##########
 
 # Auth - 로그인 정보
-
 class UserIn(BaseModel):
+    user_id: int
+    user_name: str
+    status: bool
     email: str
+    valid: bool
 
+# Password가 맞는지 검사하기 위해 데이터를 이 곳에 먼저 넣음
 class UserInDB(UserIn):
-    password: str
+    salt: str
+    hashed_password: str
 
 ### Auth - 토큰 정보
 class Token(BaseModel):
     access_token: str
     token_type: str
-    email: str
-
-class User(BaseModel):
-    username: str   # email과 동일?
-    email: Union[str, None] = None
-    full_name: Union[str, None] = None
-    disabled: Union[bool, None] = None
 
 ########## dependency ##########
 
-# https://essenceofinvesting.tistory.com/114
-
 # 비밀번호 해싱
-def get_hashed_password(password: str) -> str:
-    salt = "salt"
-    hashed_password = salt + password
-    return hashed_password
+def get_hashed_password():
+    pass
 
 # 비밀번호 검증
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return firebasescrypt.verify(plain_password, hashed_password)
+def verify_password(
+        plain_password: str, 
+        password_hash: str, 
+        salt: str,
+        salt_separator: str,
+        signer_key: str,
+        rounds: int,
+        mem_cost: int
+        ) -> bool:
+    is_valid = firebasescrypt.verify_password(
+        password=plain_password,
+        known_hash=password_hash,
+        salt=salt,
+        salt_separator=salt_separator,
+        signer_key=signer_key,
+        rounds=rounds,
+        mem_cost=mem_cost
+    )
+    return is_valid
+
+
+
+
+
+
+
+
+"""
 
 # 사용법: https://essenceofinvesting.tistory.com/114
 # 공식 문서: https://pypi.org/project/python-jose/
@@ -88,6 +105,9 @@ def get_user(email: str, db: Session):
     if email in db.query(User).filter(User.email == email).first():
         return db.query(User).filter(User.email == email).first()
 
+"""
+
+"""
 # 토큰 검증
 async def get_current_user(token: str = Depends(oauth2scheme)):
     credentials_exception = HTTPException(
@@ -99,3 +119,5 @@ async def get_current_user(token: str = Depends(oauth2scheme)):
     if user is None:
         raise credentials_exception
     return user
+
+"""
