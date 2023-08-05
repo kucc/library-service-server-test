@@ -12,9 +12,11 @@ def encode_salt(salt):
     return encoded_salt
 
 # 솔트 생성 및 인코딩 예시
+"""
 for _ in range(5):
     print("======")
     salt = generate_salt()
     print(salt)
     encoded_salt = encode_salt(salt)[8:]
     print(encoded_salt)
+"""
