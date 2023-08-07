@@ -177,7 +177,7 @@ def update_item(*,
                 req,
                 index,
                 db):
-    item = get_item_by_id(model, index, db)
+    item = get_item_by_id(model=model, index=index, db=db, user_mode=True)
     dict_item = item.__dict__
     dict_req = req.__dict__
     try:
@@ -203,7 +203,7 @@ def update_item(*,
 
 # delete
 def delete_item(model, index, db):
-    item= get_item_by_id(model, index, db)
+    item = get_item_by_id(model=model, index=index, db=db, user_mode=True)
     try:
         setattr(item, 'valid', False)
         db.add(item)
