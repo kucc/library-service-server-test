@@ -1,7 +1,6 @@
 import datetime
 from fastapi import APIRouter, status, HTTPException, Depends, Request
 from database import get_db
-from internal.custom_exception import ItemKeyValidationError, ForeignKeyValidationError
 from internal.schema import *
 from internal.crudf import *
 from models import Admin, Book, BookInfo, BookRequest, User, Notice, Category
@@ -77,20 +76,22 @@ async def get_book_info(
              )
 async def create_book_info(req: BookInfoIn, db: Session = Depends(get_db)):
 
-    book_info = BookInfo(**req.dict())
+    # book_info = BookInfo(**req.dict())
+    #
+    # category = db.query(Category).filter_by(category_id=req.category_id).first()
+    # if category is None:
+    #     raise ForeignKeyValidationError(detail=("category_id", req.category_id))
+    # try:
+    #     db.add(book_info)
+    # except IntegrityError as e:
+    #     db.rollback()
+    #     error_msg = str(e.orig)
+    #     raise HTTPException(status_code=400, detail=error_msg)
+    # db.commit()
+    # db.refresh(book_info)
+    # return book_info
 
-    category = db.query(Category).filter_by(category_id=req.category_id).first()
-    if category is None:
-        raise ForeignKeyValidationError(detail=("category_id", req.category_id))
-    try:
-        db.add(book_info)
-    except IntegrityError as e:
-        db.rollback()
-        error_msg = str(e.orig)
-        raise HTTPException(status_code=400, detail=error_msg)
-    db.commit()
-    db.refresh(book_info)
-    return book_info
+    return create_item(BookInfo, req, db)
 
 # 도서 정보 수정
 @router.patch('/book-info/{book_info_id}',
@@ -100,33 +101,35 @@ async def create_book_info(req: BookInfoIn, db: Session = Depends(get_db)):
               )
 async def update_book_info(
         book_info_id: int,
-        req: Request,
+        req: BookInfoUpdate,
         db: Session = Depends(get_db)
 ):
-    book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
-    if not book_info:
-        raise ItemKeyValidationError(detail=("book_info_id", book_info_id))
+    # book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
+    # if not book_info:
+    #     raise ItemKeyValidationError(detail=("book_info_id", book_info_id))
+    #
+    # dict_book_info = book_info.__dict__
+    #
+    # for key in req.keys():
+    #     if key in dict_book_info:
+    #         if isinstance(req[key], type(dict_book_info[key])):
+    #             if key == 'category_id':
+    #                 category_id = req['category_id']
+    #                 fk_category = db.query(Category).filter_by(category_id=category_id).first()
+    #                 if not fk_category:
+    #                     raise ForeignKeyValidationError(detail=("category_id", category_id))
+    #             setattr(book_info, key, req[key])
+    #         else:
+    #             raise HTTPException(status_code=400, detail=f"Invalid value type for column '{key}'.")
+    #     else:
+    #         raise HTTPException(status_code=400, detail=f"Invalid column name: {key}")
+    #
+    # db.commit()
+    # db.refresh(book_info)
+    #
+    # return book_info
 
-    dict_book_info = book_info.__dict__
-
-    for key in req.keys():
-        if key in dict_book_info:
-            if isinstance(req[key], type(dict_book_info[key])):
-                if key == 'category_id':
-                    category_id = req['category_id']
-                    fk_category = db.query(Category).filter_by(category_id=category_id).first()
-                    if not fk_category:
-                        raise ForeignKeyValidationError(detail=("category_id", category_id))
-                setattr(book_info, key, req[key])
-            else:
-                raise HTTPException(status_code=400, detail=f"Invalid value type for column '{key}'.")
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid column name: {key}")
-
-    db.commit()
-    db.refresh(book_info)
-
-    return book_info
+    return update_item(model=BookInfo, req=req, index=book_info_id, db=db)
 
 # 도서 정보 삭제
 @router.delete('/book-info/{book_info_id}',
@@ -137,14 +140,15 @@ async def delete_book_info(
         book_info_id: int,
         db: Session = Depends(get_db)
 ):
-    book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
-
-    if not book_info:
-        raise ItemKeyValidationError(detail=("book_info", book_info_id))
-
-    book_info.valid = 0
-    db.commit()
-    return None
+    # book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
+    #
+    # if not book_info:
+    #     raise ItemKeyValidationError(detail=("book_info", book_info_id))
+    #
+    # book_info.valid = 0
+    # db.commit()
+    # return None
+    return delete_item(BookInfo, book_info_id, db)
 
 # 소장 정보 전체 조회
 @router.get('/book-holdings/',
@@ -160,7 +164,7 @@ async def get_book_holdings_info(
         p: PeriodQuery = Depends(),
         db: Session = Depends(get_db),
 ):
-    return get_list_of_item(Book, skip, limit, use_updated_at, q, p, db)
+    return get_list_of_item(model=Book, skip=skip, limit=limit, use_update_at=use_updated_at, q=q, p=p, db=db)
 
 # 소장 정보 개별 조회
 @router.get('/book-holdings/{book_id}',
@@ -168,10 +172,10 @@ async def get_book_holdings_info(
             response_description="Success to get the book-holdings"
             )
 async def get_book_holding(
-        index: int,
+        book_id: int,
         db: Session = Depends(get_db),
 ):
-    return get_item_by_id(Book, index, db)
+    return get_item_by_id(model=Book, index=book_id, user_mode=False, db=db)
 
 # 소장 정보 등록
 @router.post('/book-holdings',
@@ -206,12 +210,12 @@ async def create_book_holding(
               response_description="Success to patch the book-holding"
               )
 async def update_book_holding(
-        index: int,
+        book_id: int,
         req: BookHoldUpdate,
         db: Session = Depends(get_db)
 ):
 
-    return update_item(Book, req, index, db)
+    return update_item(model=Book, req=req, index=book_id, db=db)
     # book = db.query(Book).filter_by(book_id=book_id).first()
     # if not book:
     #     raise ItemKeyValidationError(detail=("book_id", book_id))

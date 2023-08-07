@@ -28,7 +28,7 @@ class BookInfoQuery:
             major: bool | None = None,
             publication_year: int | None = None,
             publisher: str | None = None,
-            category: int | None = None,
+            category_id: int | None = None,
             copied: bool | None = None
     ):
         self.title = title
@@ -36,8 +36,9 @@ class BookInfoQuery:
         self.major = major
         self.publication_year = publication_year
         self.publisher = publisher
-        self.category = category
+        self.category_id = category_id
         self.copied = copied
+
 
 # ADMIN - 도서 정보 등록 REQ
 class BookInfoIn(BaseModel):
@@ -70,9 +71,11 @@ class BookInfoOut(BookInfoIn):
     updated_at: datetime.datetime
     rating: float
 
+
 # ADMIN - 도서 정보 등록/수정 RES
 class BookInfoOutAdmin(BookInfoOut):
     valid: bool
+
 
 # book_id element for holdings list
 class HoldingID(BaseModel):
@@ -165,6 +168,25 @@ class NoticeOut(NoticeIn):
 # ADMIN - 전체/개별 공지 조회 RES
 class NoticeOutAdmin(NoticeOut):
     valid: bool
+
+# Books - 전체 도서 후기 조회 QUERY
+class BookReviewQuery:
+    def __init__(self,
+                user_id : int | None = None,
+                rating : int | None = None
+            ):
+        self.user_id = user_id
+        self.rating = rating
+
+class BookReviewAdminQuery:
+    def __init__(self,
+                user_id : int | None = None,
+                book_info_id : int | None = None,
+                rating : int | None = None
+            ):
+        self.user_id = user_id
+        self.book_info_id = book_info_id
+        self.rating = rating
 
 
 # USERS - Book Review 등록 REQ
