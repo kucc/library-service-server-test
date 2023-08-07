@@ -148,7 +148,7 @@ class BookInfoByIDAdmin(BookInfoOutAdmin):
     books: List[BookHoldOutAdmin]
 
 
-# NOTICE - 전체/개별 공지 조회 REQ
+# NOTICE - 전체/개별 공지 등록 REQ
 class NoticeIn(BaseModel):
     title: str
     notice_content: str
@@ -157,12 +157,20 @@ class NoticeIn(BaseModel):
     class Config:
         orm_mode = True
 
-
-# NOTICE - 전체/개별 공지 조회 RES
+# NOTICE - 전체/개별 공지 조회, 등록 RES
 class NoticeOut(NoticeIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     notice_id: int
+
+# NOTICE - 전체/개별 공지 조회 QUERY
+class NoticeQuery(NoticeIn):
+    def __init__(self,
+                 title: str | None = None,
+                 author_id: int | None = None,
+                 ):
+        self.title = title
+        self.author_id = author_id
 
 
 # ADMIN - 전체/개별 공지 조회 RES
