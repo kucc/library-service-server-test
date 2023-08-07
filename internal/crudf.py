@@ -77,7 +77,6 @@ def get_referenced_table_and_fk(model):
 
 def valid_referenced_key(model, item, db):
     referenced_tables = get_referenced_table_and_fk(model)
-    print(referenced_tables)
     for attr, value in referenced_tables.items():
         if hasattr(item, attr):
             try:
