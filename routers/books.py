@@ -138,7 +138,14 @@ async def get_book_review_list(
     # '''
     model = BookReview
     use_update_at = False
-    return get_list_by_id_query(model, 'book_info_id', book_info_id, skip, limit, use_update_at, q, p, o, db)
+    columns = {
+        'book_info_id' : book_info_id
+    }
+
+    # return get_list_by_id_query(model, 'book_info_id', book_info_id, skip, limit, use_update_at, q, p, o, db)
+    query = get_item_by_column(model=model, columns=columns, mode=False, db=db)
+    return get_list_of_item(model=model, skip=skip, limit=limit, use_update_at=use_update_at, user_mode=True,
+                            q=q, p=p, o=o, db=db, init_query=query)
     # query = db.query(model).filter_by(book_info_id = book_info_id)
     # query = filters_by_query(query, model, q)
     # query = filter_by_period(query, model, p, use_update_at)

@@ -1,13 +1,18 @@
 from fastapi import HTTPException, status
 from internal.custom_exception import *
 from internal.schema import *
-from sqlalchemy import text, and_
+from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.inspection import inspect
 from datetime import datetime, time
+from typing import Dict, Any
 
-def filter_by_period(query, model, p, use_updated_at: bool | None = False):
+def filter_by_period(*,
+                     query,
+                     model,
+                     p,
+                     use_updated_at: bool | None = False):
     '''
     조회 기간을 기준으로 한 filtering
     :param query: database session의 query
@@ -75,59 +80,53 @@ def valid_referenced_key(model, item, db):
     for attr, value in referenced_tables.items():
         if hasattr(item, attr):
             try:
-                column_value = getattr(item, attr)
-                query = text(f"SELECT * FROM {value} WHERE {attr} = :column_value")
-                refer = db.execute(query, {"column_value": column_value}).fetchone()
+                refer = get_item_by_column(model=model, columns=referenced_tables, mode=True, db=db)
             except NoResultFound:
-                raise ForeignKeyValidationError((attr, column_value))
+                raise ForeignKeyValidationError((attr, item[attr]))
             else:
                 if not refer:
                     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return True
 
-# TODO : ADMIN은 VALID 상관 없이 GET - 현재 VALID TRUE만 GET
 # TODO : ADMIN GET BOOK-INFO에 대한 함수 정의
 
 # get the item by id
-def get_item_by_id(model, index, db):
+def get_item_by_id(*,
+                   model,
+                   index: int,
+                   db,
+                   user_mode: bool):
     pk = inspect(model).primary_key[0].name
     try:
-        item = db.query(model).filter_by(**{pk: index, 'valid': True}).one()
+        query = db.query(model).filter_by(**{pk: index})
+        if user_mode:
+            query = query.filter(model.valid).one()
+        item = query.one()
     except NoResultFound:
         raise ItemKeyValidationError(detail=(f"{pk}", index))
     finally:
         db.close()
     return item
 
+# TODO : MAKE 'get_item_by_column' : colunm명과 값이 주어졌을 때 그 값으로 filtering
+# get_item_by_column 결과를 book_info 전체, 개별 조회, review 전체 조회
+def get_item_by_column(*,
+                       model,
+                       columns: Dict[str, Any],
+                       mode: bool,
+                       db):
+    for column_name, value in columns.items() :
+        if column_name in model.__table__.columns:
+            query = db.query(model).filter(getattr(model, column_name) == value)
+            query = query.filter(model.valid)
+    if mode:
+        result = query.all()
+        return result
+    return query
 
-# get list of item
-## valid = True인 것만 조회
-def get_list_of_item(model, skip, limit, use_update_at, q, p, o, db):
-    query = db.query(model)
-    query = filters_by_query(query, model, q)
-    query = filter_by_period(query, model, p, use_update_at)
-    query = query.filter(model.valid)
-    query = orders_by_query(query, model, o)
-    result = query.offset(skip).limit(limit).all()
-    if not result:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
-    return result
 
-def get_list_by_id_query(model, key, value, skip, limit, use_update_at, q, p, o, db):
-    for column in model.__table__.columns:
-        if column.name == key:
-            query = db.query(model).filter(getattr(model, key) == value)
-    query = filters_by_query(query, model, q)
-    query = filter_by_period(query, model, p, use_update_at)
-    query = query.filter(model.valid)
-    query = orders_by_query(query, model, o)
-    result = query.offset(skip).limit(limit).all()
-    if not result:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-
-    return result
-# create
+# CREATE
 def create_item(model, req, db):
     item = model(**req.dict())
     try:
@@ -143,9 +142,41 @@ def create_item(model, req, db):
         db.close()
     return item
 
+# GET
+def get_list_of_item(*,
+                     model,
+                     skip: int,
+                     limit: int,
+                     use_update_at: bool,
+                     user_mode: bool,
+                     q,
+                     p,
+                     o,
+                     init_query: Any | None,
+                     db,
+                     ):
+    if init_query is None:
+        init_query = db.query(model)
+    query = filters_by_query(init_query, model, q)
+    query = filter_by_period(query=query, model=model, p=p, use_updated_at=use_update_at)
+    if user_mode:
+        query = query.filter(model.valid)
+    query = orders_by_query(query, model, o)
+    result = query.offset(skip).limit(limit).all()
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    db.close()
+
+    return result
+
 
 # update
-def update_item(model, req, index, db):
+def update_item(*,
+                model,
+                req,
+                index,
+                db):
     item = get_item_by_id(model, index, db)
     dict_item = item.__dict__
     dict_req = req.__dict__

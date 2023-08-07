@@ -28,7 +28,7 @@ class BookInfoQuery:
             major: bool | None = None,
             publication_year: int | None = None,
             publisher: str | None = None,
-            category: int | None = None,
+            category_id: int | None = None,
             copied: bool | None = None
     ):
         self.title = title
@@ -36,7 +36,7 @@ class BookInfoQuery:
         self.major = major
         self.publication_year = publication_year
         self.publisher = publisher
-        self.category = category
+        self.category_id = category_id
         self.copied = copied
 
 
