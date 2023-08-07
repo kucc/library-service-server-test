@@ -28,13 +28,14 @@ async def get_book_info_list(
         skip: int | None = 0,
         limit: int | None = 10,
         q: BookInfoQuery = Depends(),
+        p: PeriodQuery = Depends(),
+        o: OrderBy = Depends(),
         db: Session = Depends(get_db),
 
 ):
-    query = db.query(BookInfo)
-    query = filters_by_query(query, BookInfo, q)
     book_info_list = []
-    book_info_data = query.all()
+    book_info_data = get_list_of_item(model=BookInfo, skip=skip, limit=limit, use_update_at=None,
+                                      user_mode=False, q=q, p=p, o=o, init_query=None, db=db)
 
     # 도서 정보 전체 조회시 holdings = {book_id}
     if book_info_data:
@@ -259,6 +260,4 @@ async def delete_book_holding(
     # book.valid = 0
     # db.commit()
     # return None
-
-
 

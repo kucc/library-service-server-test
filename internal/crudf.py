@@ -77,10 +77,11 @@ def get_referenced_table_and_fk(model):
 
 def valid_referenced_key(model, item, db):
     referenced_tables = get_referenced_table_and_fk(model)
+    print(referenced_tables)
     for attr, value in referenced_tables.items():
         if hasattr(item, attr):
             try:
-                refer = get_item_by_column(model=model, columns=referenced_tables, mode=True, db=db)
+                refer = get_item_by_column(model=model, columns={attr: getattr(item, attr)}, mode=True, db=db)
             except NoResultFound:
                 raise ForeignKeyValidationError((attr, item[attr]))
             else:
@@ -95,13 +96,13 @@ def get_item_by_id(*,
                    model,
                    index: int,
                    db,
-                   user_mode: bool):
+                   user_mode: bool | None = True):
     pk = inspect(model).primary_key[0].name
     try:
-        query = db.query(model).filter_by(**{pk: index})
         if user_mode:
-            query = query.filter(model.valid).one()
-        item = query.one()
+            item = db.query(model).filter_by(**{pk: index, 'valid': user_mode}).one()
+        else:
+            item = db.query(model).filter_by(**{pk: index}).one()
     except NoResultFound:
         raise ItemKeyValidationError(detail=(f"{pk}", index))
     finally:
@@ -147,12 +148,12 @@ def get_list_of_item(*,
                      model,
                      skip: int,
                      limit: int,
-                     use_update_at: bool,
-                     user_mode: bool,
+                     use_update_at: bool | None = False,
+                     user_mode: bool | None = True,
                      q,
                      p,
                      o,
-                     init_query: Any | None,
+                     init_query: Any | None = None,
                      db,
                      ):
     if init_query is None:
@@ -184,7 +185,7 @@ def update_item(*,
         for key in dict_req.keys():
             if key in dict_item:
                 if isinstance(dict_req[key], type(dict_item[key])):
-                    if valid_referenced_key(model, req, db):
+                    if valid_referenced_key(model, dict_req, db):
                         setattr(item, key, dict_req[key])
                 else:
                     raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -203,7 +204,7 @@ def update_item(*,
 
 # delete
 def delete_item(model, index, db):
-    item = get_item_by_id(model=model, index=index, db=db, user_mode=True)
+    item = get_item_by_id(model=model, index=index, db=db)
     try:
         setattr(item, 'valid', False)
         db.add(item)
