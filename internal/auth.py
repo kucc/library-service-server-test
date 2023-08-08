@@ -63,16 +63,30 @@ async def register(req: UserIn, db: Session = Depends(get_db)):
     # salt.py 사용해야 함!
     # [8:] 잊지 말 것
 
+    # 현재 테스트 중인 부분
+        # firebase에 회원가입하면 random으로 개인 고유의 salt 생성됨
+        # firebase의 salt 생성법은 공개되지 않음
+        # 최대한 비슷한 방식으로 
+
     """Creates a new user and returns a token
+    firebase에 성공적으로 회원가입되면 그때 실행될 API
+
     on successful creation.
 
     request body:
-
-    - username: Unique identifier for a user e.g email, 
-                phone number, name
-
+    - email: Unique identifier for a user
+    - username: real name
     - password:
+
+    return token
     """
+
+
+
+# 로그아웃
+@router.post("/logout")
+async def logout(req: UserIn, db: Session = Depends(get_db)):
+    return {"message": "Logout successfully"}
 
 # 비밀번호 변경
 @router.post("/password")
@@ -82,13 +96,15 @@ async def change_password(req: UserIn, db: Session = Depends(get_db)):
 
     request body:
 
-    - username: Unique identifier for a user e.g email, 
-                phone number, name
 
-    - password:
     """
 
-# 로그아웃
-@router.post("/logout")
-async def logout(req: UserIn, db: Session = Depends(get_db)):
-    return {"message": "Logout successfully"}
+# 회원 탈퇴
+@router.delete("/delete")
+async def delete_user(req: UserIn, db: Session = Depends(get_db)):
+    """Deletes user's account
+
+    request body:
+
+
+    """
