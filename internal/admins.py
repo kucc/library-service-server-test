@@ -157,7 +157,7 @@ async def delete_book_info(
             response_model=List[BookHoldOut],
             response_description="Success to get whole book-holdings list"
             )
-async def get_book_holdings_info(
+async def get_book_holdings_list(
         skip: int | None = 0,
         limit: int | None = 10,
         use_updated_at: bool | None = False,
@@ -189,20 +189,6 @@ async def create_book_holding(
         db: Session = Depends(get_db)
 ):
     return create_item(Book, req, db)
-    # book = Book(**req.dict())
-    # book_info = db.query(BookInfo).filter_by(book_info_id=req.book_info_id).first()
-    # if book_info is None:
-    #     raise ForeignKeyValidationError(detail=("book_info_id", req.book_info_id))
-    # try:
-    #     db.add(book)
-    #
-    # except IntegrityError as e:
-    #     db.rollback()
-    #     error_msg = str(e.orig)
-    #     raise HTTPException(status_code=400, detail=error_msg)
-    # db.commit()
-    # db.refresh(book)
-    # return book
 
 # 소장 정보 수정
 @router.patch('/book-holdings/{book_id}',
@@ -217,30 +203,7 @@ async def update_book_holding(
 ):
 
     return update_item(model=Book, req=req, index=book_id, db=db)
-    # book = db.query(Book).filter_by(book_id=book_id).first()
-    # if not book:
-    #     raise ItemKeyValidationError(detail=("book_id", book_id))
-    #
-    # dict_book = book.__dict__
-    #
-    # for key in req.keys():
-    #     if key in dict_book:
-    #         if isinstance(req[key], type(dict_book[key])):
-    #             if key == 'book_info_id':
-    #                 book_info_id = req['book_info_id']
-    #                 fk_bookinfo = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
-    #                 if not fk_bookinfo:
-    #                     raise ForeignKeyValidationError(detail=("book_info_id", book_info_id))
-    #             setattr(book, key, req[key])
-    #         else:
-    #             raise HTTPException(status_code=400, detail=f"Invalid value type for column '{key}'.")
-    #     else:
-    #         raise HTTPException(status_code=400, detail=f"Invalid column name: {key}")
-    #
-    # db.commit()
-    # db.refresh(book)
-    #
-    # return book
+
 
 # 소장 정보 삭제
 @router.delete('/book-holdings/{book_id}',
@@ -252,12 +215,29 @@ async def delete_book_holding(
         db: Session = Depends(get_db)
 ):
     return delete_item(Book, index, db)
-    # book = db.query(BookInfo).filter_by(book_id=book_id).first()
-    #
-    # if not book:
-    #     raise ItemKeyValidationError(detail=("book_info", book_id))
-    #
-    # book.valid = 0
-    # db.commit()
-    # return None
 
+
+# 카테고리 전체 조회
+@router.get('/book-category/',
+            response_model=List[CategoryOut],
+            status_code=status.HTTP_200_OK,
+            response_description="Success to get the list of categories"
+            )
+async def get_category(
+        q: CategoryQuery = Depends(),
+        db: Session = Depends(get_db),
+):
+    print(q.__dict__)
+    return get_item_by_column(model=Category, mode=True, columns=q.__dict__, db=db)
+
+# 카테고리 개별 조회
+@router.get('/book-category/{category_id}',
+            response_model=CategoryOut,
+            status_code=status.HTTP_200_OK,
+            response_description="Success to get the category"
+            )
+async def get_category(
+        category_id: int,
+        db: Session = Depends(get_db)
+):
+    return get_item_by_id(model=Category, index=category_id, db=db, user_mode=False)

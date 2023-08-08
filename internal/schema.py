@@ -164,7 +164,7 @@ class NoticeOut(NoticeIn):
     notice_id: int
 
 # NOTICE - 전체/개별 공지 조회 QUERY
-class NoticeQuery:
+class NoticeQuery(NoticeIn):
     def __init__(self,
                  title: str | None = None,
                  author_id: int | None = None,
@@ -219,6 +219,26 @@ class BookReviewOut(BookReviewIn):
 class BookReviewOutAdmin(BookReviewOut):
     valid: bool
 
+
+class CategoryIn(BaseModel):
+    category_code: str
+    category_name: str
+
+    class Config:
+        orm_mode = True
+
+class CategoryOut(CategoryIn):
+    category_id: int
+    valid: bool
+
+class CategoryQuery:
+    def __init__(self,
+                category_code : str | None = None,
+                category_name : str | None = None,
+
+            ):
+        self.category_code = category_code
+        self.category_name = category_name
 
 # OrderBy
 # 1. None: 정렬 안함
