@@ -192,6 +192,8 @@ async def get_category(
 ):
     return get_item_by_id(model=Category, index=category_id, db=db, user_mode=False)
 
+
+# TODO : 여기서부터 테스트 필요
 # 카테고리 등록
 @router.post('/book-category',
              response_model=CategoryOut,
@@ -199,8 +201,8 @@ async def get_category(
              response_description="Success to post the category"
              )
 async def create_category(
-        req : CategoryIn = Depends(),
-        db : Session = Depends(get_db())
+        req: CategoryIn = Depends(),
+        db: Session = Depends(get_db)
 ):
     return create_item(Category, req, db)
 
@@ -214,7 +216,7 @@ async def create_category(
 async def update_category(
         category_id: int,
         req: CategoryUpdate = Depends(),
-        db: Session = Depends(get_db())
+        db: Session = Depends(get_db)
 ):
     return update_item(model=Category,req=req, index=category_id, db=db)
 
@@ -223,9 +225,77 @@ async def update_category(
              status_code=status.HTTP_204_NO_CONTENT,
              response_description="Success to patch the category"
              )
-async def update_category(
+async def delete_category(
         category_id: int,
-        db: Session = Depends(get_db())
+        db: Session = Depends(get_db)
 ):
     return delete_item(model=Category, index=category_id, db=db)
+
+# 공지 조회
+@router.get("/notice",
+            status_code=status.HTTP_200_OK,
+            response_model=List[NoticeOut],
+            response_description="Success to get the list of notice"
+            )
+async def get_notice_list(
+        q: NoticeQuery = Depends(),
+        p: PeriodQuery = Depends(),
+        o: OrderBy = Depends(),
+        skip: int | None = 0,
+        limit: int | None = 10,
+        db: Session = Depends(get_db)
+):
+    return get_list_of_item(model=Notice, skip=skip, limit=limit, user_mode=False, use_update_at=False,
+                            q=q, p=p, o=o, db=db)
+
+
+@router.get("/notice/{notice_id}",
+            status_code=status.HTTP_200_OK,
+            response_model=NoticeOut,
+            response_description="Success to get the notice"
+            )
+async def get_notice(
+        notice_id: int,
+        db: Session = Depends(get_db)
+):
+    return get_item_by_id(model=Notice, index=notice_id, user_mode=False, db=db)
+
+
+@router.post("/notice",
+            status_code=status.HTTP_201_CREATED,
+            response_model=NoticeOut,
+            response_description="Success to post the notice"
+             )
+async def create_notice(
+        req : NoticeIn = Depends(),
+        db : Session = Depends(get_db)
+):
+    return create_item(model=Notice, req=req, db=db)
+
+
+@router.patch("/notice/{notice_id}",
+              status_code=status.HTTP_200_OK,
+              response_model=NoticeOut,
+              response_description="Success to patch the notice"
+              )
+async def update_notice(
+        notice_id : int,
+        req : NoticeUpdate = Depends(),
+        db: Session = Depends(get_db)
+):
+    return update_item(model=Notice, req=req, index=notice_id, db=db)
+
+
+@router.delete("/notice/{notice_id}",
+              status_code=status.HTTP_200_OK,
+              response_model=NoticeOut,
+              response_description="Success to patch the notice"
+              )
+async def delete_notice(
+        notice_id: int,
+        db:Session =Depends(get_db)
+):
+    return delete_item(Notice, notice_id, db)
+
+
 

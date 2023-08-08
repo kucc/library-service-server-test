@@ -158,6 +158,11 @@ class NoticeIn(BaseModel):
     class Config:
         orm_mode = True
 
+class NoticeUpdate(NoticeIn):
+    title: str | None
+    notice_content: str | None
+    author_id: int | None
+
 # NOTICE - 전체/개별 공지 조회, 등록 RES
 class NoticeOut(NoticeIn):
     created_at: datetime.datetime
