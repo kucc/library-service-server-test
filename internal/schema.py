@@ -108,7 +108,7 @@ class BookHoldQuery:
         self.book_status = book_status
 
 
-# ADMIN - 소장 정보 등록/수정 REQ
+# ADMIN - 소장 정보 등록 REQ
 class BookHoldIn(BaseModel):
     book_info_id: int
     donor_name: str | None = None
@@ -124,6 +124,7 @@ class BookHoldIn(BaseModel):
     class Config:
         orm_mode = True
 
+# ADMIN - 소장 정보 수정 REQ
 class BookHoldUpdate(BookHoldIn):
     book_info_id: int | None
     book_status: int | None
@@ -219,7 +220,7 @@ class BookReviewOut(BookReviewIn):
 class BookReviewOutAdmin(BookReviewOut):
     valid: bool
 
-
+# ADMIN - 카테고리 등록
 class CategoryIn(BaseModel):
     category_code: str
     category_name: str
@@ -227,10 +228,17 @@ class CategoryIn(BaseModel):
     class Config:
         orm_mode = True
 
+# ADMIN - 카테고리 수정
+class CategoryUpdate(CategoryIn):
+    category_code: str | None
+    category_name: str | None
+
+# ADMIN - 카테고리 삭제
 class CategoryOut(CategoryIn):
     category_id: int
     valid: bool
 
+# ADMIN - 카테고리 전체 조회
 class CategoryQuery:
     def __init__(self,
                 category_code : str | None = None,
