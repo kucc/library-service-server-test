@@ -76,22 +76,6 @@ async def get_book_info(
              response_description="Success to create the book-info information"
              )
 async def create_book_info(req: BookInfoIn, db: Session = Depends(get_db)):
-
-    # book_info = BookInfo(**req.dict())
-    #
-    # category = db.query(Category).filter_by(category_id=req.category_id).first()
-    # if category is None:
-    #     raise ForeignKeyValidationError(detail=("category_id", req.category_id))
-    # try:
-    #     db.add(book_info)
-    # except IntegrityError as e:
-    #     db.rollback()
-    #     error_msg = str(e.orig)
-    #     raise HTTPException(status_code=400, detail=error_msg)
-    # db.commit()
-    # db.refresh(book_info)
-    # return book_info
-
     return create_item(BookInfo, req, db)
 
 # 도서 정보 수정
@@ -105,31 +89,6 @@ async def update_book_info(
         req: BookInfoUpdate,
         db: Session = Depends(get_db)
 ):
-    # book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
-    # if not book_info:
-    #     raise ItemKeyValidationError(detail=("book_info_id", book_info_id))
-    #
-    # dict_book_info = book_info.__dict__
-    #
-    # for key in req.keys():
-    #     if key in dict_book_info:
-    #         if isinstance(req[key], type(dict_book_info[key])):
-    #             if key == 'category_id':
-    #                 category_id = req['category_id']
-    #                 fk_category = db.query(Category).filter_by(category_id=category_id).first()
-    #                 if not fk_category:
-    #                     raise ForeignKeyValidationError(detail=("category_id", category_id))
-    #             setattr(book_info, key, req[key])
-    #         else:
-    #             raise HTTPException(status_code=400, detail=f"Invalid value type for column '{key}'.")
-    #     else:
-    #         raise HTTPException(status_code=400, detail=f"Invalid column name: {key}")
-    #
-    # db.commit()
-    # db.refresh(book_info)
-    #
-    # return book_info
-
     return update_item(model=BookInfo, req=req, index=book_info_id, db=db)
 
 # 도서 정보 삭제
@@ -141,14 +100,6 @@ async def delete_book_info(
         book_info_id: int,
         db: Session = Depends(get_db)
 ):
-    # book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
-    #
-    # if not book_info:
-    #     raise ItemKeyValidationError(detail=("book_info", book_info_id))
-    #
-    # book_info.valid = 0
-    # db.commit()
-    # return None
     return delete_item(BookInfo, book_info_id, db)
 
 # 소장 정보 전체 조회
@@ -218,8 +169,8 @@ async def delete_book_holding(
 
 
 # 카테고리 전체 조회
-@router.get('/book-category/',
-            response_model=List[CategoryOut],
+@router.get('/book-category',
+            response_model=CategoryOut,
             status_code=status.HTTP_200_OK,
             response_description="Success to get the list of categories"
             )
@@ -227,7 +178,6 @@ async def get_category(
         q: CategoryQuery = Depends(),
         db: Session = Depends(get_db),
 ):
-    print(q.__dict__)
     return get_item_by_column(model=Category, mode=True, columns=q.__dict__, db=db)
 
 # 카테고리 개별 조회
@@ -241,3 +191,41 @@ async def get_category(
         db: Session = Depends(get_db)
 ):
     return get_item_by_id(model=Category, index=category_id, db=db, user_mode=False)
+
+# 카테고리 등록
+@router.post('/book-category',
+             response_model=CategoryOut,
+             status_code=status.HTTP_201_CREATED,
+             response_description="Success to post the category"
+             )
+async def create_category(
+        req : CategoryIn = Depends(),
+        db : Session = Depends(get_db())
+):
+    return create_item(Category, req, db)
+
+
+# 카테고리 수정
+@router.patch('/book-category/{category_id}',
+             response_model=CategoryOut,
+             status_code=status.HTTP_200_OK,
+             response_description="Success to patch the category"
+             )
+async def update_category(
+        category_id: int,
+        req: CategoryUpdate = Depends(),
+        db: Session = Depends(get_db())
+):
+    return update_item(model=Category,req=req, index=category_id, db=db)
+
+# 카테고리 삭제
+@router.delete('/book-category/{category_id}',
+             status_code=status.HTTP_204_NO_CONTENT,
+             response_description="Success to patch the category"
+             )
+async def update_category(
+        category_id: int,
+        db: Session = Depends(get_db())
+):
+    return delete_item(model=Category, index=category_id, db=db)
+
