@@ -238,7 +238,7 @@ class CategoryQuery:
 
             ):
         self.category_code = category_code
-        self.category_code = category_name
+        self.category_name = category_name
 
 # OrderBy
 # 1. None: 정렬 안함
