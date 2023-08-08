@@ -220,6 +220,26 @@ class BookReviewOutAdmin(BookReviewOut):
     valid: bool
 
 
+class CategoryIn(BaseModel):
+    category_code: str
+    category_name: str
+
+    class Config:
+        orm_mode = True
+
+class CategoryOut(CategoryIn):
+    category_id: int
+    valid: bool
+
+class CategoryQuery:
+    def __init__(self,
+                category_code : str | None = None,
+                category_name : str | None = None,
+
+            ):
+        self.category_code = category_code
+        self.category_code = category_name
+
 # OrderBy
 # 1. None: 정렬 안함
 # 2. false: 평점 낮은 순, 등록일/출판년도 오래된 순
