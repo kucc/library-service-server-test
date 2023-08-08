@@ -164,7 +164,7 @@ class NoticeOut(NoticeIn):
     notice_id: int
 
 # NOTICE - 전체/개별 공지 조회 QUERY
-class NoticeQuery(NoticeIn):
+class NoticeQuery:
     def __init__(self,
                  title: str | None = None,
                  author_id: int | None = None,

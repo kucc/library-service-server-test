@@ -90,7 +90,7 @@ def valid_referenced_key(model, item, db):
 
 # TODO : ADMIN GET BOOK-INFO에 대한 함수 정의
 
-# get the item by id
+# get the item by primary key
 def get_item_by_id(*,
                    model,
                    index: int,
@@ -108,16 +108,18 @@ def get_item_by_id(*,
         db.close()
     return item
 
-# get_item_by_column 결과를 book_info 전체, 개별 조회, review 전체 조회
+# get_item_by_column
+# column 이름과 value 값을 이용하여 filtering
 def get_item_by_column(*,
                        model,
                        columns: Dict[str, Any],
                        mode: bool,
                        db):
     for column_name, value in columns.items() :
-        if column_name in model.__table__.columns:
-            query = db.query(model).filter(getattr(model, column_name) == value)
-            query = query.filter(model.valid)
+        if value:
+            if column_name in model.__table__.columns:
+                query = db.query(model).filter(getattr(model, column_name) == value)
+                query = query.filter(model.valid)
     if mode:
         result = query.all()
         return result
