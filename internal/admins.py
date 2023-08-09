@@ -1,15 +1,15 @@
 import datetime
 from fastapi import APIRouter, status, HTTPException, Depends, Request
 from database import get_db
-from internal.custom_exception import ItemKeyValidationError, ForeignKeyValidationError
 from internal.schema import *
 from internal.crudf import *
 from models import Admin, Book, BookInfo, BookRequest, User, Notice, Category
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timedelta
 
-# TODO - 1. CRUD 용 함수 만들기
+# TODO - CRUD 함수 적용하고 테스트하기
+# TODO : DB session 잘 닫히는지 확인하기
+
 router = APIRouter(prefix="/admins", tags=["admins"])
 # /admins 경로에 대한 핸들러 함수
 @router.get("")
@@ -28,13 +28,14 @@ async def get_book_info_list(
         skip: int | None = 0,
         limit: int | None = 10,
         q: BookInfoQuery = Depends(),
+        p: PeriodQuery = Depends(),
+        o: OrderBy = Depends(),
         db: Session = Depends(get_db),
 
 ):
-    query = db.query(BookInfo)
-    query = filters_by_query(query, BookInfo, q)
     book_info_list = []
-    book_info_data = query.all()
+    book_info_data = get_list_of_item(model=BookInfo, skip=skip, limit=limit, use_update_at=None,
+                                      user_mode=False, q=q, p=p, o=o, init_query=None, db=db)
 
     # 도서 정보 전체 조회시 holdings = {book_id}
     if book_info_data:
@@ -58,6 +59,7 @@ async def get_book_info(
         book_info_id: int,
         db: Session = Depends(get_db)
 ):
+
     query = db.query(BookInfo).options(joinedload(BookInfo.books))
     book_info = query.filter(BookInfo.book_info_id == book_info_id).first()
 
@@ -74,21 +76,7 @@ async def get_book_info(
              response_description="Success to create the book-info information"
              )
 async def create_book_info(req: BookInfoIn, db: Session = Depends(get_db)):
-
-    book_info = BookInfo(**req.dict())
-
-    category = db.query(Category).filter_by(category_id=req.category_id).first()
-    if category is None:
-        raise ForeignKeyValidationError(detail=("category_id", req.category_id))
-    try:
-        db.add(book_info)
-    except IntegrityError as e:
-        db.rollback()
-        error_msg = str(e.orig)
-        raise HTTPException(status_code=400, detail=error_msg)
-    db.commit()
-    db.refresh(book_info)
-    return book_info
+    return create_item(BookInfo, req, db)
 
 # 도서 정보 수정
 @router.patch('/book-info/{book_info_id}',
@@ -98,33 +86,10 @@ async def create_book_info(req: BookInfoIn, db: Session = Depends(get_db)):
               )
 async def update_book_info(
         book_info_id: int,
-        req: Request,
+        req: BookInfoUpdate,
         db: Session = Depends(get_db)
 ):
-    book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
-    if not book_info:
-        raise ItemKeyValidationError(detail=("book_info_id", book_info_id))
-
-    dict_book_info = book_info.__dict__
-
-    for key in req.keys():
-        if key in dict_book_info:
-            if isinstance(req[key], type(dict_book_info[key])):
-                if key == 'category_id':
-                    category_id = req['category_id']
-                    fk_category = db.query(Category).filter_by(category_id=category_id).first()
-                    if not fk_category:
-                        raise ForeignKeyValidationError(detail=("category_id", category_id))
-                setattr(book_info, key, req[key])
-            else:
-                raise HTTPException(status_code=400, detail=f"Invalid value type for column '{key}'.")
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid column name: {key}")
-
-    db.commit()
-    db.refresh(book_info)
-
-    return book_info
+    return update_item(model=BookInfo, req=req, index=book_info_id, db=db)
 
 # 도서 정보 삭제
 @router.delete('/book-info/{book_info_id}',
@@ -135,14 +100,7 @@ async def delete_book_info(
         book_info_id: int,
         db: Session = Depends(get_db)
 ):
-    book_info = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
-
-    if not book_info:
-        raise ItemKeyValidationError(detail=("book_info", book_info_id))
-
-    book_info.valid = 0
-    db.commit()
-    return None
+    return delete_item(BookInfo, book_info_id, db)
 
 # 소장 정보 전체 조회
 @router.get('/book-holdings/',
@@ -150,27 +108,15 @@ async def delete_book_info(
             response_model=List[BookHoldOut],
             response_description="Success to get whole book-holdings list"
             )
-async def get_book_holdings_info(
+async def get_book_holdings_list(
         skip: int | None = 0,
         limit: int | None = 10,
-        use_update_at : bool | None = False,
+        use_updated_at: bool | None = False,
         q: BookHoldQuery = Depends(),
         p: PeriodQuery = Depends(),
-        o: OrderBy = Depends(),
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
 ):
-
-    return get_list_of_item(Book, skip, limit, use_update_at, q, p, o, db)
-    # query = db.query(Book)
-    # query = filters_by_query(query, Book, q)
-    # query = filter_by_period(query, Book, p)
-    #
-    # book_holdings_list = query.all()
-    #
-    # if book_holdings_list:
-    #     return book_holdings_list[skip: skip + limit]
-    # else:
-    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    return get_list_of_item(model=Book, skip=skip, limit=limit, use_update_at=use_updated_at, q=q, p=p, db=db)
 
 # 소장 정보 개별 조회
 @router.get('/book-holdings/{book_id}',
@@ -179,13 +125,9 @@ async def get_book_holdings_info(
             )
 async def get_book_holding(
         book_id: int,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
 ):
-    book_holding = db.query(Book).filter_by(book_id=book_id).first()
-    if book_holding:
-        return book_holding
-    else:
-        raise ItemKeyValidationError(detail=("book_id", book_id))
+    return get_item_by_id(model=Book, index=book_id, user_mode=False, db=db)
 
 # 소장 정보 등록
 @router.post('/book-holdings',
@@ -197,20 +139,7 @@ async def create_book_holding(
         req: BookHoldIn,
         db: Session = Depends(get_db)
 ):
-    book = Book(**req.dict())
-    book_info = db.query(BookInfo).filter_by(book_info_id=req.book_info_id).first()
-    if book_info is None:
-        raise ForeignKeyValidationError(detail=("book_info_id", req.book_info_id))
-    try:
-        db.add(book)
-
-    except IntegrityError as e:
-        db.rollback()
-        error_msg = str(e.orig)
-        raise HTTPException(status_code=400, detail=error_msg)
-    db.commit()
-    db.refresh(book)
-    return book
+    return create_item(Book, req, db)
 
 # 소장 정보 수정
 @router.patch('/book-holdings/{book_id}',
@@ -220,51 +149,153 @@ async def create_book_holding(
               )
 async def update_book_holding(
         book_id: int,
-        req: Request,
+        req: BookHoldUpdate,
         db: Session = Depends(get_db)
 ):
-    book = db.query(Book).filter_by(book_id=book_id).first()
-    if not book:
-        raise ItemKeyValidationError(detail=("book_id", book_id))
 
-    dict_book = book.__dict__
+    return update_item(model=Book, req=req, index=book_id, db=db)
 
-    for key in req.keys():
-        if key in dict_book:
-            if isinstance(req[key], type(dict_book[key])):
-                if key == 'book_info_id':
-                    book_info_id = req['book_info_id']
-                    fk_bookinfo = db.query(BookInfo).filter_by(book_info_id=book_info_id).first()
-                    if not fk_bookinfo:
-                        raise ForeignKeyValidationError(detail=("book_info_id", book_info_id))
-                setattr(book, key, req[key])
-            else:
-                raise HTTPException(status_code=400, detail=f"Invalid value type for column '{key}'.")
-        else:
-            raise HTTPException(status_code=400, detail=f"Invalid column name: {key}")
-
-    db.commit()
-    db.refresh(book)
-
-    return book
 
 # 소장 정보 삭제
 @router.delete('/book-holdings/{book_id}',
                status_code=status.HTTP_204_NO_CONTENT,
                response_description="Success to remove the book holding"
                )
-async def delete_book_info(
-        book_id: int,
+async def delete_book_holding(
+        index: int,
         db: Session = Depends(get_db)
 ):
-    book = db.query(BookInfo).filter_by(book_id=book_id).first()
+    return delete_item(Book, index, db)
 
-    if not book:
-        raise ItemKeyValidationError(detail=("book_info", book_id))
 
-    book.valid = 0
-    db.commit()
-    return None
+# 카테고리 전체 조회
+@router.get('/book-category',
+            response_model=CategoryOut,
+            status_code=status.HTTP_200_OK,
+            response_description="Success to get the list of categories"
+            )
+async def get_category(
+        q: CategoryQuery = Depends(),
+        db: Session = Depends(get_db),
+):
+    return get_item_by_column(model=Category, mode=True, columns=q.__dict__, db=db)
+
+# 카테고리 개별 조회
+@router.get('/book-category/{category_id}',
+            response_model=CategoryOut,
+            status_code=status.HTTP_200_OK,
+            response_description="Success to get the category"
+            )
+async def get_category(
+        category_id: int,
+        db: Session = Depends(get_db)
+):
+    return get_item_by_id(model=Category, index=category_id, db=db, user_mode=False)
+
+
+# TODO : 여기서부터 테스트 필요
+# 카테고리 등록
+@router.post('/book-category',
+             response_model=CategoryOut,
+             status_code=status.HTTP_201_CREATED,
+             response_description="Success to post the category"
+             )
+async def create_category(
+        req: CategoryIn = Depends(),
+        db: Session = Depends(get_db)
+):
+    return create_item(Category, req, db)
+
+
+# 카테고리 수정
+@router.patch('/book-category/{category_id}',
+             response_model=CategoryOut,
+             status_code=status.HTTP_200_OK,
+             response_description="Success to patch the category"
+             )
+async def update_category(
+        category_id: int,
+        req: CategoryUpdate = Depends(),
+        db: Session = Depends(get_db)
+):
+    return update_item(model=Category,req=req, index=category_id, db=db)
+
+# 카테고리 삭제
+@router.delete('/book-category/{category_id}',
+             status_code=status.HTTP_204_NO_CONTENT,
+             response_description="Success to patch the category"
+             )
+async def delete_category(
+        category_id: int,
+        db: Session = Depends(get_db)
+):
+    return delete_item(model=Category, index=category_id, db=db)
+
+# 공지 조회
+@router.get("/notice",
+            status_code=status.HTTP_200_OK,
+            response_model=List[NoticeOut],
+            response_description="Success to get the list of notice"
+            )
+async def get_notice_list(
+        q: NoticeQuery = Depends(),
+        p: PeriodQuery = Depends(),
+        o: OrderBy = Depends(),
+        skip: int | None = 0,
+        limit: int | None = 10,
+        db: Session = Depends(get_db)
+):
+    return get_list_of_item(model=Notice, skip=skip, limit=limit, user_mode=False, use_update_at=False,
+                            q=q, p=p, o=o, db=db)
+
+
+@router.get("/notice/{notice_id}",
+            status_code=status.HTTP_200_OK,
+            response_model=NoticeOut,
+            response_description="Success to get the notice"
+            )
+async def get_notice(
+        notice_id: int,
+        db: Session = Depends(get_db)
+):
+    return get_item_by_id(model=Notice, index=notice_id, user_mode=False, db=db)
+
+
+@router.post("/notice",
+            status_code=status.HTTP_201_CREATED,
+            response_model=NoticeOut,
+            response_description="Success to post the notice"
+             )
+async def create_notice(
+        req : NoticeIn = Depends(),
+        db : Session = Depends(get_db)
+):
+    return create_item(model=Notice, req=req, db=db)
+
+
+@router.patch("/notice/{notice_id}",
+              status_code=status.HTTP_200_OK,
+              response_model=NoticeOut,
+              response_description="Success to patch the notice"
+              )
+async def update_notice(
+        notice_id : int,
+        req : NoticeUpdate = Depends(),
+        db: Session = Depends(get_db)
+):
+    return update_item(model=Notice, req=req, index=notice_id, db=db)
+
+
+@router.delete("/notice/{notice_id}",
+              status_code=status.HTTP_200_OK,
+              response_model=NoticeOut,
+              response_description="Success to patch the notice"
+              )
+async def delete_notice(
+        notice_id: int,
+        db:Session =Depends(get_db)
+):
+    return delete_item(Notice, notice_id, db)
 
 
 
