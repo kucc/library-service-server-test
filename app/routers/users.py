@@ -1,8 +1,8 @@
 # for /users
 from fastapi import APIRouter, Depends
-from app.database import get_db
+from database import get_db
 from sqlalchemy.orm import Session
-from app.models import User
+from models import User
 
 router = APIRouter(prefix="/users", tags=["users"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
 

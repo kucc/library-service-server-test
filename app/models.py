@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger
-from sqlalchemy.dialects import INTEGER
+from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy import text, ForeignKey
 from database import Base
 from sqlalchemy.orm import relationship

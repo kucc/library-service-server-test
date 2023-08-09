@@ -2,7 +2,7 @@
 #  uvicorn main:app --reload
 from fastapi import FastAPI
 from routers import users, notice, books
-from app.routers import auth, admins
+from routers import auth, admins
 
 # 테스트용
 from dotenv import load_dotenv
