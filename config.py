@@ -14,8 +14,8 @@ DB_USER = os.getenv("DB_USER")
 # firebase authentication & authorization
 FB_SALT_SEPARATOR = os.getenv("FB_SALT_SEPARATOR")
 FB_SIGNER_KEY = os.getenv("FB_SIGNER_KEY")
-FB_ROUNDS = os.getenv("FB_ROUNDS")
-FB_MEM_COST = os.getenv("FB_MEM_COST")
+FB_ROUNDS = int(os.getenv("FB_ROUNDS"))
+FB_MEM_COST = int(os.getenv("FB_MEM_COST"))
 
 from pydantic import BaseSettings
 
