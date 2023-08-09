@@ -1,11 +1,9 @@
-import datetime
-from fastapi import APIRouter, status, HTTPException, Depends, Request
-from database import get_db
-from internal.schema import *
-from internal.crudf import *
-from models import Admin, Book, BookInfo, BookRequest, User, Notice, Category
+from fastapi import APIRouter, Depends, status
+from app.database import get_db
+from app.internal.schemas.schema import *
+from app.internal.crudf import *
+from app.models import Admin, Book, BookInfo, Notice, Category
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.exc import IntegrityError
 
 # TODO - CRUD 함수 적용하고 테스트하기
 # TODO : DB session 잘 닫히는지 확인하기
@@ -114,9 +112,10 @@ async def get_book_holdings_list(
         use_updated_at: bool | None = False,
         q: BookHoldQuery = Depends(),
         p: PeriodQuery = Depends(),
+        o: OrderBy = Depends(),
         db: Session = Depends(get_db),
 ):
-    return get_list_of_item(model=Book, skip=skip, limit=limit, use_update_at=use_updated_at, q=q, p=p, db=db)
+    return get_list_of_item(model=Book, skip=skip, limit=limit, use_update_at=use_updated_at, q=q, p=p, o=o, db=db)
 
 # 소장 정보 개별 조회
 @router.get('/book-holdings/{book_id}',

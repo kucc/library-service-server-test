@@ -1,16 +1,14 @@
 from datetime import datetime, timedelta
-from typing import Annotated, Union, Any
+from typing import Annotated, Union
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
 from jose import JWTError, jwt
 
-from database import get_db
-
-from internal.schema import *
-from internal import firebasescrypt
+from app.database import get_db
+from app.internal.schemas.schema import *
+from app.internal.security import firebasescrypt
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -20,7 +18,7 @@ SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 1 # 1일
 
-########## schema ##########
+########## schemas ##########
 
 '''
 class UserBase(BaseModel):

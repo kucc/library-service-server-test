@@ -1,8 +1,7 @@
-from fastapi import APIRouter, status, Depends
-from database import get_db
-from internal.crudf import *
-from internal.schema import NoticeOut, NoticeQuery, PeriodQuery, OrderBy
-from models import Notice
+from fastapi import APIRouter, Depends, status
+from app.database import get_db
+from app.internal.schemas.schema import NoticeOut, NoticeQuery, PeriodQuery, OrderBy
+from app.models import Notice
 from sqlalchemy.orm import Session
 from typing import List
 
