@@ -2,12 +2,12 @@
 #  uvicorn main:app --reload
 from fastapi import FastAPI
 from routers import users, notice, books
-from internal import admins, auth
+from app.routers import auth, admins
 
 # 테스트용
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv
+
 load_dotenv() # take environment variables from .env.
-import os
 
 app = FastAPI()
 

@@ -1,22 +1,13 @@
 ### internal/auth.py
-import datetime
-from typing import Annotated, Union
 
-from fastapi import APIRouter, Depends, HTTPException, status, Response
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from pydantic import BaseModel
+from fastapi import APIRouter
+from fastapi.security import OAuth2PasswordRequestForm
 
-from database import get_db
-from models import User, Admin, Book
-from config import Settings
+from app.models import User
+from app.config import Settings
 
-from internal.salt import *
-from internal.auth_dependency_schema import *
-from internal.custom_exception import ItemKeyValidationError, ForeignKeyValidationError
-from internal.schema import *
-from internal.crudf import *
+from app.internal.schemas.auth_dependency_schema import *
+from app.internal.crudf import *
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
