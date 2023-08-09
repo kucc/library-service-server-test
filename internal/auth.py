@@ -1,28 +1,31 @@
-### internal\auth.py
-from typing import Annotated
-from fastapi import APIRouter, Response, status, HTTPException, Depends
-from fastapi.security import OAuth2PasswordBearer
-from database import get_db
-from models import User, Admin
+### internal/auth.py
+import datetime
+from typing import Annotated, Union
+
+from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel
 
-# basic auth
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import secrets
+from database import get_db
+from models import User, Admin, Book
+from config import Settings
+
+from internal.salt import *
+from internal.auth_dependency_schema import *
+from internal.custom_exception import ItemKeyValidationError, ForeignKeyValidationError
+from internal.schema import *
+from internal.crudf import *
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+setting = Settings()
 
-security = HTTPBasic()  # basic auth
-
-class User(BaseModel):
-    email: str
-    password: str
-    salt: str | None
-
-@router.get("/me")  # basic auth
-def read_current_user(credentials: Annotated[HTTPBasicCredentials, Depends(security)]):
-    return {"username": credentials.username, "password": credentials.password}
+fb_salt_separator = setting.fb_salt_separator
+fb_signer_key = setting.fb_signer_key
+fb_rounds = setting.fb_rounds
+fb_mem_cost = setting.fb_mem_cost
 
 # /auth 경로에 대한 핸들러 함수
 @router.get("/")
@@ -30,50 +33,107 @@ async def get_auths(
         db: Session = Depends(get_db)
 ):
     auths = db.query(User).all()
-    return auths
+    if auths:
+        return auths
+    else:
+        raise HTTPException(status_code=404, detail="No auths found")
 
 # 로그인
-@router.post("/login")
-async def login(user: User, db: Session = Depends(get_db)):
-    user = db.query(User).filter_by(email=user.email).first()
-    if user is None:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    return user
+@router.post("/token",
+             status_code=status.HTTP_201_CREATED,
+             response_model=Token,
+             response_description="Success to login"
+             )
+async def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Session = Depends(get_db)
+):
+    # 추후 authenticate_user()로 뺄지 고민
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not verify_password(form_data.password, user.password, user.salt, fb_salt_separator, fb_signer_key, fb_rounds, fb_mem_cost):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )  
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+# 예시
+@router.get("/users/me, response_mode=User")
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    return current_user
+
+# 예시
+@router.get("/users/me/items/")
+async def read_own_items(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    return [{"item_id": "Foo", "owner": current_user.username}]
+
 
 # 회원가입
 @router.post("/register")
-async def register(user: User, db: Session = Depends(get_db)):
-    user = User(**user.dict())
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+async def register(req: UserIn, db: Session = Depends(get_db)):
 
-# 사용자 데이터를 가정한 간단한 데이터베이스
-fake_users_db = {
-    "user1": {
-        "email": "user1",
-        "password": "password1"
-    },
-    "user2": {
-        "email": "user2",
-        "password": "password2"
-    }
-}
+    # ★★★★★ 테스트 중 ★★★★★
 
-# 사용자 로그인을 확인하는 의존성 함수
-def authenticate_user(credentials: HTTPBasicCredentials = Depends(security)):
-    user = fake_users_db.get(credentials.username)
-    if user is None or user["password"] != credentials.password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return user    
+    # salt.py 사용해야 함!
+    # [8:] 잊지 말 것
+
+    # 현재 테스트 중인 부분
+        # firebase에 회원가입하면 random으로 개인 고유의 salt 생성됨
+        # firebase의 salt 생성법은 공개되지 않음
+        # 최대한 비슷한 방식으로 
+
+    """Creates a new user and returns a token
+    firebase에 성공적으로 회원가입되면 그때 실행될 API
+
+    on successful creation.
+
+    request body:
+    - email: Unique identifier for a user
+    - username: real name
+    - password:
+
+    return token
+    """
 
 # 로그아웃
 @router.post("/logout")
-async def logout(credentials: HTTPBasicCredentials = Depends(security)):
-    user = authenticate_user(credentials)
-    return {"token": credentials, "message": "logout success"}
+async def logout(req: UserIn, db: Session = Depends(get_db)):
+    return {"message": "Logout successfully"}
+
+# 비밀번호 변경
+@router.post("/password")
+async def change_password(req: UserIn, db: Session = Depends(get_db)):
+    """Changes user's password and returns a token
+    on successful creation.
+
+    not implemented yet
+
+    request body:
+
+    """
+
+# 회원 탈퇴
+@router.delete("/delete")
+async def delete_user(req: UserIn, db: Session = Depends(get_db)):
+    """Deletes user's account
+    
+    not implemented yet
+
+    request body:
+
+    """
