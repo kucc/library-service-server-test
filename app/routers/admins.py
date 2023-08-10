@@ -2,12 +2,16 @@ from fastapi import APIRouter, Depends, status
 from app.database import get_db
 from app.internal.schemas.schema import *
 from app.internal.crudf import *
-from app.models import Admin, Book, BookInfo, Notice, Category
+from app.models import *
 from sqlalchemy.orm import Session, joinedload
 
-# TODO - CRUD 함수 적용하고 테스트하기
-# TODO : DB session 잘 닫히는지 확인하기
+# TODO :
+#   CRUD 함수 적용하고 테스트하기
+#   DB session 잘 닫히는지 확인하기
 
+# TODO:
+#  user_mode, use_updated_at를 쿼리 파라미터 제외
+#  use_updated_at : back단에서 설정하고 client가 설정하지 않도록 함
 router = APIRouter(prefix="/admins", tags=["admins"])
 # /admins 경로에 대한 핸들러 함수
 @router.get("")
@@ -296,19 +300,147 @@ async def delete_notice(
 ):
     return delete_item(Notice, notice_id, db)
 
-# 전체 조회  /take
-# 대출, 반납, 연장 내역 조회  /take/{loan_id}
+# 대출 전체 조회  /task
+@router.get("/task",
+            status_code = status.HTTP_200_OK,
+            response_model=List[TakeOut],
+            response_description="Success to get the list of loan information"
+            )
+async def get_task_list(
+    q: TakeQueryAdmin = Depends(),
+    p: PeriodQuery = Depends(),
+    o: OrderBy = Depends(),
+    skip: int | None = 0,
+    limit: int | None = 10,
+    db: Session = Depends(get_db)
+):
+    return get_list_of_item(model=Loan, skip=skip, limit=limit, q=q, p=p, o=o, user_mode=False, use_update_at=True, db=db)
 
-# 대출 정보 수정
-# 반납 정보 수정
-# 연장 정보 수정
+# 대출, 반납, 연장 내역 개별 조회  /task/{loan_id}
+@router.get("/task/{loan_id}",
+            status_code = status.HTTP_200_OK,
+            response_model=TakeOut,
+            response_description="Success to get the loan information"
+            )
+async def get_task(
+        loan_id : int,
+        db: Session = Depends(get_db)
+):
+    return get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=False)
 
+# 대출/반납/연장 정보 수정
+@router.patch("/task/{loan_id}",
+              status_code= status.HTTP_200_OK,
+              response_model=TakeOut,
+              response_description="Success to patch the loan information"
+              )
+async def update_task(
+        loan_id: int,
+        req : TakeUpdate,
+        db: Session = Depends(get_db)
+):
+    return update_item(model=Loan, req=req, index=loan_id, db=db)
+
+# 대출 정보 삭제
+@router.delete("/task/{loan_id}",
+              status_code= status.HTTP_204_NO_CONTENT,
+              response_description="Success to delete the loan information")
+async def delete_task(
+        loan_id : int,
+        db : Session = Depends(get_db)
+):
+    return delete_item(model=Loan, index=loan_id, db=db)
 
 # 전체 도서 후기 조회
+@router.get("/reviews",
+            status_code=status.HTTP_200_OK,
+            response_model=List[BookReviewOut],
+            response_description="Success to get all book-review lists"
+            )
+async def get_review_list(
+        skip: int | None = 0,
+        limit: int | None = 10,
+        q: BookReviewQuery = Depends(),
+        p: PeriodQuery = Depends(),
+        o: OrderBy = Depends(),
+        db: Session = Depends(get_db)
+):
+    return get_list_of_item(model=BookReview, skip=skip, limit=limit, user_mode=False, q=q, p=p, o=o, init_query=None,
+                            db=db)
+
+
 # 개별 도서 후기 조회
+@router.get("/reviews/{review_id}",
+            status_code=status.HTTP_200_OK,
+            response_model=BookReviewOut,
+            response_description="Success to get the book-review information"
+            )
+async def get_review(
+        review_id: int,
+        db: Session = Depends(get_db)
+):
+    return get_item_by_id(model=BookReview, index=review_id, db=db, user_mode=False)
+
+
 # 도서 후기 삭제
+@router.delete("/reviews/{review_id}",
+            status_code=status.HTTP_204_NO_CONTENT,
+            response_description="Success to delete the book-review information"
+            )
+async def get_review(
+        review_id: int,
+        db: Session = Depends(get_db)
+):
+    return delete_item(model=BookReview, index=review_id, db=db)
 
-# 전체 도서 내역 조회
-# 개별 도서 내역 조회
-#
+# 전체 도서 신청 내역 조회
+@router.get("/book-request",
+            status_code=status.HTTP_200_OK,
+            response_description="Success to get the list of book-request information"
+            )
+async def get_book_request_list(
+        skip: int | None = 0,
+        limit: int | None = 10,
+        q: BookRequestQuery = Depends(),
+        p: PeriodQuery = Depends(),
+        o: OrderBy = Depends(),
+        db: Session = Depends(get_db)
+):
+    return get_list_of_item(model=BookRequest, skip=skip, limit=limit, user_mode=False, q=q, p=p, o=o, init_query=None,
+                            db=db)
 
+# 개별 도서 구매 신청 내역 조회
+@router.get("/book-request/{book_request_id}",
+            status_code=status.HTTP_200_OK,
+            response_model=BookRequestOut,
+            response_description="Success to get the book-request information"
+            )
+async def get_book_request(
+        request_id: int,
+        db: Session = Depends(get_db)
+):
+    return get_item_by_id(model=BookRequest, index=request_id, db=db, user_mode=False)
+
+# 도서 구매 신청 내역 수정
+@router.patch("/book-request/{book_request_id}",
+              status_code= status.HTTP_200_OK,
+              response_model=TakeOut,
+              response_description="Success to patch the book-request information"
+              )
+async def update_book_request(
+        request_id: int,
+        req : BookRequestUpdate,
+        db: Session = Depends(get_db)
+):
+    return update_item(model=Loan, req=req, index=request_id, db=db)
+
+# 도서 구매 신청 내역 삭제
+@router.delete("/book-request/{book_request_id}",
+            status_code=status.HTTP_204_NO_CONTENT,
+            response_description="Success to delete the book-review information"
+            )
+async def get_review(
+        request_id: int,
+        db: Session = Depends(get_db)
+):
+    return delete_item(model=BookReview, index=request_id, db=db)

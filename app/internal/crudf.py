@@ -1,11 +1,15 @@
 from app.internal.custom_exception import *
 from app.internal.schemas.schema import *
 from sqlalchemy import and_
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.inspection import inspect
 from datetime import datetime, time
 from typing import Dict, Any
+
+# TODO :
+#  user_mode, use_updated_at를 쿼리 파라미터 제외
+#  use_updated_at : back단에서 설정하고 client가 설정하지 않도록 함
+#  user_mode : user가 사용하는 api에서는 쿼리 파라미터 제외, admin이 사용하는 api는 쿼리 파라미터로 설정, default true
 
 def filter_by_period(*,
                      query,
