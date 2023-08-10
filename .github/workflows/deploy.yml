@@ -63,23 +63,9 @@ jobs:
           # docker stop $(docker ps -a -q)
           # docker rm $(docker ps -a -q)
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-          echo "test"
-          echo "test"
-          echo "test"
-          echo "test"
-          echo "test"
-          echo "test"
-          echo "test"
           docker run --rm \
           -e DB_DB=${{secrets.DB_DB}} -e DB_HOST=${{secrets.DB_HOST}} \
           -e DB_PASSWORD=${{secrets.DB_PASSWORD}} -e DB_PORT=${{secrets.DB_PORT}} \
           -e DB_USER=${{secrets.DB_USER}} \
           -p 8080:8000 \
           -d --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-          echo "test"
-          echo "test"
-          echo "test"
-          echo "test"
-          echo "test"
-          echo "test"
-          echo "test"
