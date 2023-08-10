@@ -253,6 +253,75 @@ class CategoryQuery:
         self.category_code = category_code
         self.category_name = category_name
 
+# USERS - 전체/개별 회원 정보 조회 QUERY
+class UserQuery:
+    def __init__(self,
+                user_id : int | None = None,
+                user_name : str | None = None,
+                status : bool | None = None,
+                email : str | None = None
+            ):
+        self.user_id = user_id
+        self.user_name = user_name
+        self.status = status
+        self.email = email
+
+# USERS - 회원 가입
+class UserIn(BaseModel):
+    user_name: str
+    email: str
+    password: str
+
+    class Config:
+        orm_mode = True
+
+# USERS - 회원 정보 수정 REQ
+#class UserUpdate(UserIn):
+# 회원 가입 시와 똑같으면 이 클래스를 만들 필요가 있을까?
+
+# USERS - 전체/개별 회원 정보 RES
+class UserOut(UserIn):
+    user_id: int
+    status: bool
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+# USERS - 대출 목록 조회 QUERY
+class LoanQuery:
+    def __init__(self,
+                 loan_id: int | None = None,
+                 book_id: int | None = None,
+                 user_id: int | None = None,
+                 loan_date: str | None = None,
+                 extend_status: bool | None = None,
+                 expected_return_date: str | None = None,
+                 return_status: bool | None = None,
+                 return_date: str | None = None,
+                 delay_days: int | None = None
+            ):
+        self.loan_id = loan_id
+        self.book_id = book_id
+        self.user_id = user_id
+        self.loan_date = loan_date
+        self.extend_status = extend_status
+        self.expected_return_date = expected_return_date
+        self.return_status = return_status
+        self.return_date = return_date
+        self.delay_days = delay_days
+
+# USERS - 
+class LoanIn(BaseModel):
+    book_id : int
+    user_id : int
+    loan_date : datetime
+    extend_status : bool
+    expected_return_date : datetime
+    return_status : bool
+    return_date : datetime
+    delay_days : int
+    
+
+
 # OrderBy
 # 1. None: 정렬 안함
 # 2. false: 평점 낮은 순, 등록일/출판년도 오래된 순
