@@ -1,5 +1,5 @@
 # for /users
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app.models import User

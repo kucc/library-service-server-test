@@ -1,6 +1,6 @@
 ### internal/auth.py
 
-from fastapi import APIRouter
+from fastapi import APIRouter, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.models import User

@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends
-from starlette import status
+from fastapi import APIRouter, Depends, status
 from app.database import get_db
 from app.internal.schemas.schema import NoticeOut, NoticeQuery, PeriodQuery, OrderBy
 from app.models import Notice
