@@ -46,7 +46,7 @@ jobs:
         DB_PORT: ${{ secrets.DB_PORT }}
         DB_USER: ${{ secrets.DB_USER }}
         FB_SALT_SEPARATOR: ${{ secrets.FB_SALT_SEPARATOR }}
-        FB_SINGER_KEY: ${{ secrets.FB_SINGER_KEY }}
+        FB_SINGER_KEY: ${{ secrets.FB_SIGNER_KEY }}
         FB_ROUNDS: ${{ secrets.FB_ROUNDS }}
         FB_MEM_COST: ${{ secrets.FB_MEM_COST }}
         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
