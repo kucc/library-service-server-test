@@ -3,11 +3,11 @@
 from fastapi import APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 
-from models import User
-from config import Settings
+from app.models import User
+from app.config import Settings
 
-from internal.schemas.auth_dependency_schema import *
-from internal.crudf import *
+from app.internal.schemas.auth_dependency_schema import *
+from app.internal.crudf import *
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

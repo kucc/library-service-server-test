@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, status
-from database import get_db
-from internal.schemas.schema import *
-from internal.crudf import *
-from models import Admin, Book, BookInfo, Notice, Category
+from fastapi import APIRouter, Depends
+from starlette import status
+from app.database import get_db
+from app.internal.schemas.schema import *
+from app.internal.crudf import *
+from app.models import Admin, Book, BookInfo, Notice, Category
 from sqlalchemy.orm import Session, joinedload
 
 # TODO - CRUD 함수 적용하고 테스트하기
@@ -247,7 +248,7 @@ async def get_notice_list(
     return get_list_of_item(model=Notice, skip=skip, limit=limit, user_mode=False, use_update_at=False,
                             q=q, p=p, o=o, db=db)
 
-
+#공지 개별 조회
 @router.get("/notice/{notice_id}",
             status_code=status.HTTP_200_OK,
             response_model=NoticeOut,
@@ -259,7 +260,7 @@ async def get_notice(
 ):
     return get_item_by_id(model=Notice, index=notice_id, user_mode=False, db=db)
 
-
+# 공지 등록
 @router.post("/notice",
             status_code=status.HTTP_201_CREATED,
             response_model=NoticeOut,
@@ -271,7 +272,7 @@ async def create_notice(
 ):
     return create_item(model=Notice, req=req, db=db)
 
-
+# 공지 수정
 @router.patch("/notice/{notice_id}",
               status_code=status.HTTP_200_OK,
               response_model=NoticeOut,
@@ -284,7 +285,7 @@ async def update_notice(
 ):
     return update_item(model=Notice, req=req, index=notice_id, db=db)
 
-
+# 공지 삭제
 @router.delete("/notice/{notice_id}",
               status_code=status.HTTP_200_OK,
               response_model=NoticeOut,
@@ -296,5 +297,19 @@ async def delete_notice(
 ):
     return delete_item(Notice, notice_id, db)
 
+# 전체 조회  /take
+# 대출, 반납, 연장 내역 조회  /take/{loan_id}
 
+# 대출 정보 수정
+# 반납 정보 수정
+# 연장 정보 수정
+
+
+# 전체 도서 후기 조회
+# 개별 도서 후기 조회
+# 도서 후기 삭제
+
+# 전체 도서 내역 조회
+# 개별 도서 내역 조회
+#
 

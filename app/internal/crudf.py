@@ -1,5 +1,5 @@
-from internal.custom_exception import *
-from internal.schemas.schema import *
+from app.internal.custom_exception import *
+from app.internal.schemas.schema import *
 from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
