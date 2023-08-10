@@ -9,11 +9,16 @@ from sqlalchemy.orm import Session, joinedload
 router = APIRouter(prefix="/users", tags=["users"])#(prefix="/users", tags=["users"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
 
 
+# TODO - 완성 시까지
+#  1. USERS에서 user_mode는 싹 다 True로 할 것
+#  2. response_model_exclude={"valid"} 모두 추가
+#  3. loan date는 프론트에서 입력, expected return date와 delay_days는 백엔드에서 계산
 # /users 핸들러 함수 (전체 회원 정보 조회)
 @router.get("",
             status_code=status.HTTP_200_OK,
             response_model=List[UserOut],
-            response_description="Success to get all users information list"
+            response_description="Success to get all users information list",
+            response_model_exclude={"valid"}
             )
 async def get_user_info_list(
         skip: int | None = 0,
@@ -30,7 +35,8 @@ async def get_user_info_list(
 @router.get("/{user_id}/profile",
             status_code=status.HTTP_200_OK,
             response_model=UserOut,
-            response_description="Success to get the user information"
+            response_description="Success to get the user information",
+            response_model_exclude={"valid"}
             )
 async def get_user_info(
     user_id: int,
@@ -43,7 +49,8 @@ async def get_user_info(
 @router.patch("/{user_id}/profile",
             status_code=status.HTTP_200_OK,
             response_model=UserOut,
-            response_description="Success to patch the user information"
+            response_description="Success to patch the user information",
+            response_model_exclude={"valid"}
             )
 async def update_user_info(
     user_id: int,
@@ -56,11 +63,20 @@ async def update_user_info(
 # 현재 자기 대출 목록 조회
 @router.get("/{user_id}/loans",
             status_code=status.HTTP_200_OK,
-            response_model=UserOut,
-            response_description="Success to get the user's current loan information"
+            response_model=List[LoanOut],
+            response_description="Success to get the user's current loan information",
+            response_model_exclude={"valid"}
             )
-async def update_user_info(
+async def get_current_loan_list(
     user_id: int,
-    req: UserIn,
+    skip: int | None = 0,
+    limit: int | None = 10,
+    q: LoanQuery = Depends(),
+    p: PeriodQuery = Depends(),
+    o: OrderBy = Depends(),
     db: Session = Depends(get_db)
 ):
+    init_query = get_item_by_column(model=Loan, columns={"user_id": user_id, "return_status": False}, mode=False, db=db)
+    return get_list_of_item(model=Loan, skip=skip, limit=limit, user_mode=True, q=q, p=p, o=o,
+                            init_query=init_query, db=db)
+

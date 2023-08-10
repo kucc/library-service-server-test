@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger
 from sqlalchemy.dialects.mysql import INTEGER
 from sqlalchemy import text, ForeignKey
-from database import Base
+from app.database import Base
 from sqlalchemy.orm import relationship
 
 
@@ -26,11 +26,11 @@ class Setting(Base):
     setting_id = Column(Integer, primary_key=True)
     service_begin = Column(DateTime, nullable=False)
     service_end = Column(DateTime, nullable=False)
-    max_loan_count = Column(Integer, nullable=False)
-    loan_period = Column(Integer, nullable=False)
-    extend_period = Column(Integer, nullable=False)
-    max_request_count = Column(Integer, nullable=False)
-    max_request_price = Column(Integer, nullable=False)
+    max_loan_count = Column(UnsignedInt, nullable=False)
+    loan_period = Column(UnsignedInt, nullable=False)
+    extend_period = Column(UnsignedInt, nullable=False)
+    max_request_count = Column(UnsignedInt, nullable=False)
+    max_request_price = Column(UnsignedInt, nullable=False)
 
 class Admin(Base):
     __tablename__ = 'admin'
@@ -91,15 +91,14 @@ class BookRequest(Base):
     book_request_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
     book_title = Column(String(255), nullable=False)
-    author = Column(String(100))
-    publication_year = Column(Integer)
-    publisher = Column(String(45))
     request_link = Column(Text, nullable=False)
     reason = Column(Text, nullable=False)
     processing_status = Column(SmallInteger, nullable=False, default=0)
+    price = Column(UnsignedInt)
     valid = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+
 
 class Notice(Base):
     __tablename__ = 'notice'
@@ -120,7 +119,7 @@ class Loan(Base):
     extend_status = Column(Boolean, nullable=False, default=0)
     expected_return_date = Column(DateTime, nullable=False)
     return_status = Column(Boolean, nullable=False, default=0)
-    return_date = Column(DateTime, nullable=False)
+    return_date = Column(DateTime)
     delay_days = Column(UnsignedInt, nullable=False, default=0)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
