@@ -336,7 +336,9 @@ class BookRequestQuery:
         self.processing_status = processing_status
         self.price = price
 
-
+# TODO
+#  USERS 관련 스키마 만들기
+#  Loan* 스키마 검토 (ADMIN의 Take* 스키마와 비교)
 # USERS - 전체/개별 회원 정보 조회 QUERY
 class UserQuery:
     def __init__(self,
