@@ -43,6 +43,13 @@ KUCC Library Service Server Test Repository
 
 If you would like to contribute to this project or if you have any questions or need assistance, feel free to reach out to [mjkweon17](https://github.com/mjkweon17) for guidance.
 
+## 🛠 Tech Stack
+| Framework | FastAPI |
+|:---|:---|
+| Language | Python 3.10 |
+| Database/ORM | MySQL, Naver Cloud Platform - Cloud DB for MySQL, SQLAlchemy |
+| CI/CD | Naver Cloud Platform - Server, Docker, Docker Hub, GitHub Actions |
+| ETC | Swagger, Notion, Figma, Disord |
 
 ## Getting Started
 
