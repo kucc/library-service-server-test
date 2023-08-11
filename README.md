@@ -46,7 +46,7 @@ KUCC Library Service Server Test Repository
     <th align="center">ERD</th>
   </tr>
   <tr>
-    <th>API Documentation</th>
+    <th align="center" colspan="4">API Documentation</th>
   </tr>
 </table>
 
