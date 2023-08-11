@@ -72,4 +72,4 @@ jobs:
           -e FB_ROUNDS=${{secrets.FB_ROUNDS}} \
           -e FB_MEM_COST=${{secrets.FB_MEM_COST}} \
           -p 8080:8000 \
-          --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          -d --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
