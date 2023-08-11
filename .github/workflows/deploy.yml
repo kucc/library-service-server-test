@@ -67,5 +67,9 @@ jobs:
           -e DB_DB=${{secrets.DB_DB}} -e DB_HOST=${{secrets.DB_HOST}} \
           -e DB_PASSWORD=${{secrets.DB_PASSWORD}} -e DB_PORT=${{secrets.DB_PORT}} \
           -e DB_USER=${{secrets.DB_USER}} \
+          -e FB_SALT_SEPARATOR=${{secrets.FB_SALT_SEPARATOR}} \
+          -e FB_SINGER_KEY=${{secrets.FB_SIGNER_KEY}} \
+          -e FB_ROUNDS=${{secrets.FB_ROUNDS}} \
+          -e FB_MEM_COST=${{secrets.FB_MEM_COST}} \
           -p 8080:8000 \
           --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
