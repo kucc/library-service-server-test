@@ -39,6 +39,15 @@ KUCC Library Service Server Test Repository
       <a href="https://github.com/DDididingding">DDididingding</a>
     </td>
   </tr>
+  <tr>
+    <th align="center">Auth, CI/CD</th>
+    <th align="center">ORM, Admins</th>
+    <th align="center">ERD, Books</th>
+    <th align="center">ERD</th>
+  </tr>
+  <tr>
+    <th>API Documentation</th>
+  </tr>
 </table>
 
 If you would like to contribute to this project or if you have any questions or need assistance, feel free to reach out to [mjkweon17](https://github.com/mjkweon17) for guidance.
