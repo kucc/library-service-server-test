@@ -7,9 +7,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
-from app.database import get_db
-from app.internal.schemas.schema import *
-from app.internal.security import firebasescrypt
+from database import get_db
+from internal.schemas.schema import *
+from internal.security import firebasescrypt
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
