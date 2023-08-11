@@ -40,9 +40,9 @@ KUCC Library Service Server Test Repository
     </td>
   </tr>
   <tr>
-    <th align="center">Auth, CI/CD</th>
-    <th align="center">ORM, Admins</th>
-    <th align="center">ERD, Books</th>
+    <th align="center">Auth, Search, Users CI/CD</th>
+    <th align="center">ORM, Admins, Schemas</th>
+    <th align="center">ERD, Books, Users</th>
     <th align="center">ERD</th>
   </tr>
   <tr>
