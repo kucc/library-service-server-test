@@ -2,6 +2,48 @@
 
 KUCC Library Service Server Test Repository
 
+## 💻 Backend Developers
+
+<table align="center" style = "table-layout: auto; width: 100%; table-layout: fixed;">
+  <tr>
+    <td>
+       <img width="200" src = "https://avatars.githubusercontent.com/u/75142329?v=4" />
+    </td>
+    <td>
+      <img width="200" src = "https://avatars.githubusercontent.com/u/76930385?v=4"/>
+    </td>
+        <td>
+      <img width="200" src = "https://avatars.githubusercontent.com/u/74053211?v=4"/>
+    </td>
+        <td>
+      <img width="200" src = "https://avatars.githubusercontent.com/u/68099714?v=4"/>
+    </td>
+  </tr> 
+  <tr>
+    <th align="center">권민재</th>
+    <th align="center">한수빈</th>
+    <th align="center">박진권</th>
+    <th align="center">안준현</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/mjkweon17">mjkweon17</a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/smreosms13">smreosms13</a>
+    </td>
+        <td align="center">
+      <a href="https://github.com/Supernova0417">Supernova0417</a>
+    </td>
+        <td align="center">
+      <a href="https://github.com/DDididingding">DDididingding</a>
+    </td>
+  </tr>
+</table>
+
+If you would like to contribute to this project or if you have any questions or need assistance, feel free to reach out to [mjkweon17](https://github.com/mjkweon17) for guidance.
+
+
 ## Getting Started
 
 To get started with this app, follow these steps:
@@ -42,16 +84,6 @@ Here's a brief overview of the project structure:
 ## Usage
 
 [Provide instructions on how to use your app, API endpoints, etc.]
-
-## Contributors
-
-A big thank you to the following contributors for their valuable contributions to this project:
-
-- [@contributor1](https://github.com/contributor1)
-- [@contributor2](https://github.com/contributor2)
-
-If you would like to contribute to this project or if you have any questions or need assistance, feel free to reach out to [mjkweon17](https://github.com/mjkweon17) for guidance.
-
 
 ## License
 
