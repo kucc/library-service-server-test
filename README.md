@@ -58,7 +58,7 @@ If you would like to contribute to this project or if you have any questions or 
 | Language | Python 3.10 |
 | Database/ORM | MySQL, Naver Cloud Platform - Cloud DB for MySQL, SQLAlchemy |
 | CI/CD | Naver Cloud Platform - Server, Docker, Docker Hub, GitHub Actions |
-| ETC | Swagger, Notion, Figma, Disord |
+| ETC | Swagger, Notion, Figma, Discord |
 
 ## Getting Started
 
@@ -85,7 +85,7 @@ To get started with this app, follow these steps:
     ```
 5. Run the app using the provided PowerShell script:
     ```bash
-     .\run.ps1
+     ./run.ps1
     ```
 
 ## Directory Structure
