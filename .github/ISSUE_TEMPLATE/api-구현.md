@@ -1,7 +1,7 @@
 ---
 name: API 구현
 about: 구현해야 할 API가 생기면 이 템플릿을 사용해서 이슈를 생성해주세요
-title: ''
+title: 'API 구현 - /example'
 labels: API, enhancement
 assignees: ''
 
