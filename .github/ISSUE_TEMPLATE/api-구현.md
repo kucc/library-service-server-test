@@ -7,11 +7,6 @@ assignees: ''
 
 ---
 
-제목 예시:
-API 구현 - /example
-
-내용 예시:
-
 ## 아래 내용은 ChatGPT에서 생성한 임시 내용으로 작업 시작하기 전에 내용 꼭 수정하세요!!!
 
 ### API 구현 - /users/{user_id}/book-request
