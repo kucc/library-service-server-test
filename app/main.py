@@ -1,6 +1,7 @@
 #  RUN ::
 #  uvicorn main:app --reload
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from routers import users, notice, books
 from routers import auth, admins
 
@@ -16,6 +17,23 @@ app.include_router(books.router)
 app.include_router(notice.router)
 app.include_router(admins.router)
 app.include_router(auth.router)
+
+# CORS 설정
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://localhost:8080",
+]
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True, # allow cookie  (JWT)
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # root
 @app.get("/")
