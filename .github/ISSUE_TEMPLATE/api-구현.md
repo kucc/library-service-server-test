@@ -1,6 +1,6 @@
 ---
 name: API 구현
-about: Describe this issue template's purpose here.
+about: 구현해야 할 API가 생기면 이 템플릿을 사용해서 이슈를 생성해주세요
 title: ''
 labels: API, enhancement
 assignees: ''
