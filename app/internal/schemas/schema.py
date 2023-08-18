@@ -79,7 +79,7 @@ class BookInfoOutAdmin(BookInfoOut):
 
 # book_id element for holdings list
 class HoldingID(BaseModel):
-    book_id = int
+    book_id: int
     __setattr__ = object.__setattr__
 
     def __init__(self, num):
