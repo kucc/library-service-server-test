@@ -189,7 +189,7 @@ async def create_book_request(
     user_id: int,
     req: BookRequestIn,
     db: Session = Depends(get_db)
-    ):
+):
     return create_item(BookRequest, req, db)
 
 
@@ -209,3 +209,92 @@ async def update_book_request(
     return update_item(model=BookRequest, req=req, index=book_request_id, db=db)
 
 
+# 회원 도서 신청 삭제
+@router.delete("/{user_id}/book-requests/{book_request_id}",
+            status_code=status.HTTP_200_OK,
+            response_description="Success to delete the user's book-request information"
+            )
+async def delete_book_request(
+    user_id: int,
+    book_request_id: int,
+    db: Session = Depends(get_db)
+):
+    return delete_item(model=BookRequest, index=book_request_id, db=db)
+
+
+# 회원 도서 후기 작성
+@router.post("/{user_id}/reviews/{book_info_id}",
+            response_model=List[BookReviewOut],
+            status_code=status.HTTP_201_CREATED,
+            response_description="Success to create the user's book review"
+            )
+async def create_book_review(
+    user_id: int,
+    book_info_id: int,
+    req: BookReviewIn,
+    db: Session = Depends(get_db)
+):
+    return create_item(BookReview, req, db)
+
+
+# 회원 도서 후기 수정
+@router.patch("/{user_id}/reviews/{review_id}",
+            response_model=List[BookReviewOut],
+            status_code=status.HTTP_201_CREATED,
+            response_description="Success to patch the user's book review",
+            response_model_exclude={"valid"}
+            )
+async def update_book_request(
+    user_id: int,
+    review_id: int,
+    req: BookReviewIn,
+    db: Session = Depends(get_db)
+):
+    return update_item(model=BookReview, req=req, index=review_id, db=db)
+
+
+# 회원 도서 후기 삭제
+@router.delete("/{user_id}/reviews/{review_id}",
+            status_code=status.HTTP_200_OK,
+            response_description="Success to delete the user's book review"
+            )
+async def delete_book_review(
+    user_id: int,
+    review_id: int,
+    db: Session = Depends(get_db)
+):
+    return delete_item(model=BookReviewIn, index=review_id, db=db)
+
+'''
+# 회원 도서 대출
+@router.post("/{user_id}/task/loan/{book_id}",
+            response_model=List[LoanOut],
+            status_code=status.HTTP_201_CREATED,
+            response_description="Success to create loan"
+            )
+async def create_loan(
+    user_id: int,
+    book_id: int,
+    req: LoanIn,
+    db: Session = Depends(get_db)
+):
+    return create_item(Loan, req, db)
+
+
+# 회원 대출별 남은 대출 일자 조회
+@router.get("/users/{user_id}/task/loan/{loan_id}/loan-period",
+            status_code=status.HTTP_200_OK,
+            response_model=List[LoanOut],
+            response_description="Success to get the user's all loan informations",
+            response_model_exclude={"valid",
+                                    }
+            )
+async def get_user_loan_remaining_period(
+    user_id: int,
+    loan_id: int,
+    db: Session = Depends(get_db)
+):
+    init_query = get_item_by_column(model=Loan, columns={"user_id": user_id}, mode=False, db=db)
+    return get_list_of_item(model=Loan, skip=skip, limit=limit, user_mode=True, q=q, p=p, o=o,
+                            init_query=init_query, db=db)
+'''
