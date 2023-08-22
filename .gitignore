@@ -33,9 +33,6 @@ TIL
 library-service-server-test.wiki
 
 # minjae - deploy & login test
-firebase
-firebasescrypt
-routers/auth.py
 kucc-lib-keykey.pem
 temp.py
 code-practice
