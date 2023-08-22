@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, status
-from app.database import get_db
-from app.internal.schemas.schema import *
-from app.internal.crudf import *
-from app.models import *
+from database import get_db
+from internal.schemas.schema import *
+from internal.crudf import *
+from models import *
 from sqlalchemy.orm import Session, joinedload
 
 # TODO :

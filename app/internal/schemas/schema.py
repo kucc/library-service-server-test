@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator
 from typing import List
-from app.internal.custom_exception import InvalidDateFormatError
+from internal.custom_exception import InvalidDateFormatError
 import datetime
 
 # TODO :
@@ -74,7 +74,7 @@ class BookInfoIn(BaseModel):
     copied: bool | None = False
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 도서 정보 수정 REQ
 class BookInfoUpdate(BookInfoIn):
@@ -101,7 +101,7 @@ class BookInfoOutAdmin(BookInfoOut):
 
 # book_id element for holdings list
 class HoldingID(BaseModel):
-    book_id = int
+    book_id: int
     __setattr__ = object.__setattr__
 
     def __init__(self, num):
@@ -119,7 +119,6 @@ class BookInfoList(BookInfoOut):
 # ADMIN - 도서 정보 리스트 조회 RES
 class BookInfoListAdmin(BookInfoOutAdmin):
     holdings: List[HoldingID]
-
 
 # ADMIN - 소장 정보 조회 QUERY
 class BookHoldQuery:
@@ -147,7 +146,7 @@ class BookHoldIn(BaseModel):
         return value
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 소장 정보 수정 REQ
 class BookHoldUpdate(BookHoldIn):
@@ -161,6 +160,7 @@ class BookHoldOut(BookHoldIn):
     updated_at: datetime.datetime
     book_id: int
 
+
 # TODO
 #   *OutAdmin 삭제
 #   *Out 스키마에 valid 추가,
@@ -168,8 +168,7 @@ class BookHoldOut(BookHoldIn):
 class BookHoldOutAdmin(BookHoldOut):
     valid: bool
 
-
-# Books - 개별 도서 정보 조회 RES
+# BOOKS - 개별 도서 정보 조회 RES
 class BookInfoByID(BookInfoOut):
     books: List[BookHoldOut]
 
@@ -180,7 +179,6 @@ class BookInfoByID(BookInfoOut):
 class BookInfoByIDAdmin(BookInfoOutAdmin):
     books: List[BookHoldOutAdmin]
 
-
 # NOTICE - 전체/개별 공지 등록 REQ
 class NoticeIn(BaseModel):
     title: str
@@ -188,7 +186,7 @@ class NoticeIn(BaseModel):
     author_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class NoticeUpdate(NoticeIn):
     title: str | None
@@ -200,6 +198,7 @@ class NoticeOut(NoticeIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     notice_id: int
+    valid: bool
 
 # NOTICE - 전체/개별 공지 조회 QUERY
 class NoticeQuery:
@@ -246,7 +245,7 @@ class BookReviewIn(BaseModel):
     rating: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # BOOKS - 전체/개별 Review 조회 RES
@@ -263,13 +262,14 @@ class BookReviewOut(BookReviewIn):
 class BookReviewOutAdmin(BookReviewOut):
     valid: bool
 
+
 # ADMIN - 카테고리 등록
 class CategoryIn(BaseModel):
     category_code: str
     category_name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 카테고리 수정
 class CategoryUpdate(CategoryIn):
@@ -316,7 +316,7 @@ class TakeIn(BaseModel):
     expected_return_date: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 대출 이력 수정
 class TakeUpdate(TakeIn):
@@ -348,8 +348,8 @@ class BookRequestIn(BaseModel):
     reason : str
 
     class Config:
-        orm_mode = True
-
+        from_attributes = True
+       
 # 도서 구매 신청 수정 REQ
 class BookRequestUpdate(BookRequestIn):
     user_id : int | None
@@ -377,3 +377,76 @@ class BookRequestQuery:
         self.processing_status = processing_status
         self.price = price
 
+# TODO
+#  USERS 관련 스키마 만들기
+#  Loan* 스키마 검토 (ADMIN의 Take* 스키마와 비교)
+# USERS - 전체/개별 회원 정보 조회 QUERY
+class UserQuery:
+    def __init__(self,
+                user_id : int | None = None,
+                user_name : str | None = None,
+                status : bool | None = None,
+                email : str | None = None
+            ):
+        self.user_id = user_id
+        self.user_name = user_name
+        self.status = status
+        self.email = email
+
+# USERS - 회원 가입 / 회원 정보 수정 REQ
+class UserIn(BaseModel):
+    user_name: str
+    email: str
+    password: str
+
+    class Config:
+        from_attributes = True
+
+# USERS - 전체/개별 회원 정보 RES
+class UserOut(UserIn):
+    user_id: int
+    status: bool
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    valid: bool
+
+# USERS - 대출 목록 조회 QUERY
+class LoanQuery:
+    def __init__(self,
+                 book_id: int | None = None,
+                 user_id: int | None = None,
+                 loan_date: str | None = None,
+                 extend_status: bool | None = None,
+                 expected_return_date: str | None = None,
+                 return_status: bool | None = None,
+                 return_date: str | None = None,
+                 delay_days: int | None = None
+            ):
+        self.book_id = book_id
+        self.user_id = user_id
+        self.loan_date = loan_date
+        self.extend_status = extend_status
+        self.expected_return_date = expected_return_date
+        self.return_status = return_status
+        self.return_date = return_date
+        self.delay_days = delay_days
+
+# USERS - 
+class LoanIn(BaseModel):
+    book_id : int
+    user_id : int
+    loan_date : str
+
+    class Config:
+        from_attributes = True
+
+# USERS - 
+class LoanOut(LoanIn):
+    loan_id : int
+    extend_status : bool
+    expected_return_date : str
+    return_status : bool
+    return_date : str
+    delay_days : int
+    created_at : datetime.datetime
+    updated_at : datetime.datetime

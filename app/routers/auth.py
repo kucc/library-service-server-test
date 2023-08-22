@@ -3,11 +3,11 @@
 from fastapi import APIRouter, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.models import User
-from app.config import Settings
+from models import User
+from config import Settings
 
-from app.internal.schemas.auth_dependency_schema import *
-from app.internal.crudf import *
+from internal.schemas.auth_dependency_schema import *
+from internal.crudf import *
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -19,7 +19,7 @@ fb_rounds = setting.fb_rounds
 fb_mem_cost = setting.fb_mem_cost
 
 # /auth 경로에 대한 핸들러 함수
-@router.get("/")
+@router.get("")
 async def get_auths(
         db: Session = Depends(get_db)
 ):

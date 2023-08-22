@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, status
-from app.database import get_db
-from app.internal.schemas.schema import BookHoldOut, BookReviewOut, BookInfoOut, \
+from database import get_db
+from internal.schemas.schema import BookHoldOut, BookReviewOut, BookInfoOut, \
     BookInfoQuery,BookReviewQuery,BookHoldQuery,BookInfoByID
-from app.models import Book, BookInfo, BookReview
-from app.internal.crudf import *
+from models import Book, BookInfo, BookReview
+from internal.crudf import *
 from sqlalchemy.orm import Session, joinedload
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -13,7 +13,8 @@ router = APIRouter(prefix="/books", tags=["books"])
 @router.get("",
             status_code=status.HTTP_200_OK,
             response_model=List[BookInfoOut],
-            response_description="Success to get all book-info information list"
+            response_description="Success to get all book-info information list",
+            response_model_exclude={"valid"}
             )
 async def get_book_list(
         skip: int | None = 0,
@@ -30,7 +31,8 @@ async def get_book_list(
 # 개별 도서 정보 조회
 @router.get("/book-info/{book_info_id}",
             response_model=BookInfoByID,
-            response_description="Success to get the book-info information"
+            response_description="Success to get the book-info information",
+            response_model_exclude={"valid"}
             )
 async def get_book_info(
         book_info_id: int,
@@ -48,7 +50,8 @@ async def get_book_info(
 @router.get("/book-holdings",
             status_code=status.HTTP_200_OK,
             response_model=List[BookHoldOut],
-            response_description="Success to get all book-holding information list"
+            response_description="Success to get all book-holding information list",
+            response_model_exclude={"valid"}
             )
 async def get_book_holding_list(
         skip: int | None = 0,
@@ -65,7 +68,8 @@ async def get_book_holding_list(
 @router.get("/book-holdings/{book_id}",
             status_code=status.HTTP_200_OK,
             response_model=BookHoldOut,
-            response_description="Success to get the book-holding information"
+            response_description="Success to get the book-holding information",
+            response_model_exclude={"valid"}
             )
 async def get_book_holding(
         book_id: int,
@@ -78,7 +82,8 @@ async def get_book_holding(
 @router.get("/reviews",
             status_code=status.HTTP_200_OK,
             response_model=List[BookReviewOut],
-            response_description="Success to get all book-review lists"
+            response_description="Success to get all book-review lists",
+            response_model_exclude={"valid"}
             )
 async def get_review_list(
         skip: int | None = 0,
@@ -96,7 +101,8 @@ async def get_review_list(
 @router.get("/{book_info_id}/reviews",
             status_code=status.HTTP_200_OK,
             response_model=List[BookReviewOut],
-            response_description="Success to get all book-review lists"
+            response_description="Success to get all book-review lists",
+            response_model_exclude={"valid"}
             )
 async def get_book_review_list(
         book_info_id: int,
@@ -116,7 +122,8 @@ async def get_book_review_list(
 @router.get("/reviews/{review_id}",
             status_code=status.HTTP_200_OK,
             response_model=BookReviewOut,
-            response_description="Success to get the book-review information"
+            response_description="Success to get the book-review information",
+            response_model_exclude={"valid"}
             )
 async def get_review(
         review_id: int,
