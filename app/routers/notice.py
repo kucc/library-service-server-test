@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, status
 from database import get_db
 from internal.schemas.schema import NoticeOut, NoticeQuery, PeriodQuery, OrderBy
 from models import Notice
+from internal.crudf import *
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -12,7 +13,8 @@ router = APIRouter(prefix="/notices", tags=["notices"])
 @router.get("/",
             status_code=status.HTTP_200_OK,
             response_model=List[NoticeOut],
-            response_description="Success to get the list of notice"
+            response_description="Success to get the list of notice",
+            response_model_exclude={"valid"}
             )
 async def get_notice_list(
         q: NoticeQuery = Depends(),
@@ -29,7 +31,8 @@ async def get_notice_list(
 @router.get("/{notice_id}",
             status_code=status.HTTP_200_OK,
             response_model=NoticeOut,
-            response_description="Success to get the notice"
+            response_description="Success to get the notice",
+            response_model_exclude={"valid"}
             )
 async def get_notice(
         notice_id: int,
