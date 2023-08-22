@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, status
 from database import get_db
 from internal.schemas.schema import BookHoldOut, BookReviewOut, BookInfoOut, \
-    BookInfoQuery,BookReviewQuery,BookHoldQuery,BookInfoByID,BookHoldIn,BookInfoIn
+    BookInfoQuery,BookReviewQuery,BookHoldQuery,BookInfoByID
 from models import Book, BookInfo, BookReview
 from internal.crudf import *
 from sqlalchemy.orm import Session, joinedload

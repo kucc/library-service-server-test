@@ -74,7 +74,7 @@ class BookInfoIn(BaseModel):
     copied: bool | None = False
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 도서 정보 수정 REQ
 class BookInfoUpdate(BookInfoIn):
@@ -94,7 +94,7 @@ class BookInfoOut(BookInfoIn):
 
 # book_id element for holdings list
 class HoldingID(BaseModel):
-    book_id = int
+    book_id: int
     __setattr__ = object.__setattr__
 
     def __init__(self, num):
@@ -132,7 +132,7 @@ class BookHoldIn(BaseModel):
         return value
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 소장 정보 수정 REQ
 class BookHoldUpdate(BookHoldIn):
@@ -159,7 +159,7 @@ class NoticeIn(BaseModel):
     author_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class NoticeUpdate(NoticeIn):
     title: str | None
@@ -211,7 +211,7 @@ class BookReviewIn(BaseModel):
     rating: float
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # BOOKS - 전체/개별 Review 조회 RES
@@ -228,7 +228,7 @@ class CategoryIn(BaseModel):
     category_name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 카테고리 수정
 class CategoryUpdate(CategoryIn):

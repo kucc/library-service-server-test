@@ -1,6 +1,6 @@
 ### internal/auth.py
 
-from fastapi import APIRouter
+from fastapi import APIRouter, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from models import User
@@ -19,7 +19,7 @@ fb_rounds = setting.fb_rounds
 fb_mem_cost = setting.fb_mem_cost
 
 # /auth 경로에 대한 핸들러 함수
-@router.get("/")
+@router.get("")
 async def get_auths(
         db: Session = Depends(get_db)
 ):

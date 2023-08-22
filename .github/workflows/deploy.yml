@@ -4,7 +4,7 @@ on:
   push: 
     branches:
       - deploy
-      - main
+      - main 
   pull_request:
     branches:
       - deploy
@@ -46,7 +46,7 @@ jobs:
         DB_PORT: ${{ secrets.DB_PORT }}
         DB_USER: ${{ secrets.DB_USER }}
         FB_SALT_SEPARATOR: ${{ secrets.FB_SALT_SEPARATOR }}
-        FB_SINGER_KEY: ${{ secrets.FB_SINGER_KEY }}
+        FB_SIGNER_KEY: ${{ secrets.FB_SIGNER_KEY }}
         FB_ROUNDS: ${{ secrets.FB_ROUNDS }}
         FB_MEM_COST: ${{ secrets.FB_MEM_COST }}
         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -56,16 +56,22 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
-        envs: DB_DB, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER, FB_SALT_SEPARATOR, FB_SINGER_KEY, FB_ROUNDS, FB_MEM_COST, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
+        envs: DB_DB, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER, FB_SALT_SEPARATOR, FB_SIGNER_KEY, FB_ROUNDS, FB_MEM_COST, DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
         script: |
           docker stop $(docker ps -q)
           docker rmi -f $(docker images -aq)
           # docker stop $(docker ps -a -q)
           # docker rm $(docker ps -a -q)
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          echo "docker run" 
           docker run --rm \
           -e DB_DB=${{secrets.DB_DB}} -e DB_HOST=${{secrets.DB_HOST}} \
           -e DB_PASSWORD=${{secrets.DB_PASSWORD}} -e DB_PORT=${{secrets.DB_PORT}} \
           -e DB_USER=${{secrets.DB_USER}} \
+          -e FB_SALT_SEPARATOR=${{secrets.FB_SALT_SEPARATOR}} \
+          -e FB_SIGNER_KEY=${{secrets.FB_SIGNER_KEY}} \
+          -e FB_ROUNDS=${{secrets.FB_ROUNDS}} \
+          -e FB_MEM_COST=${{secrets.FB_MEM_COST}} \
           -p 8080:8000 \
           -d --name container_name ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          echo "docker ps"

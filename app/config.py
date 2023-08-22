@@ -1,4 +1,4 @@
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv
 import os
 
 load_dotenv() # take environment variables from .env.
@@ -17,7 +17,7 @@ FB_SIGNER_KEY = os.getenv("FB_SIGNER_KEY")
 FB_ROUNDS = int(os.getenv("FB_ROUNDS"))
 FB_MEM_COST = int(os.getenv("FB_MEM_COST"))
 
-from pydantic import BaseSettings
+from pydantic_settings  import BaseSettings
 
 class Settings(BaseSettings):
     db_db: str = DB_DB

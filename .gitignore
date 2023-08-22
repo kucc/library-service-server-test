@@ -19,7 +19,7 @@ env
 .env
 docs_build
 site_build
-venv
+app/venv
 docs.zip
 archive.zip
 
