@@ -2,21 +2,16 @@
 #  uvicorn main:app --reload
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import users, notice, books
-from routers import auth, admins
-
-# 테스트용
-from dotenv import load_dotenv
-
-load_dotenv() # take environment variables from .env.
+from routers import admins, auth, books, notice, users
 
 app = FastAPI()
 
-app.include_router(users.router)
-app.include_router(books.router)
-app.include_router(notice.router)
+# 라우터 등록
 app.include_router(admins.router)
 app.include_router(auth.router)
+app.include_router(books.router)
+app.include_router(notice.router)
+app.include_router(users.router)
 
 # CORS 설정
 origins = [
