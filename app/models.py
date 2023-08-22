@@ -20,7 +20,6 @@ class User(Base):
 
 class Setting(Base):
     __tablename__ = 'settings'
-
     setting_id = Column(Integer, primary_key=True)
     service_begin = Column(DateTime, nullable=False)
     service_end = Column(DateTime, nullable=False)
@@ -128,4 +127,5 @@ class Category(Base):
     category_code = Column(String(5), nullable=False, unique=True)
     category_name = Column(String(30), nullable=False, unique =True)
     valid = Column(Boolean, nullable=False, default=1)
+    
     bookinfo = relationship("BookInfo", back_populates="category")
