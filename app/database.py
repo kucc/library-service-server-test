@@ -1,11 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from config import Settings
+from config import DB_Settings
 
 
 Base = declarative_base()
-settings = Settings()
+settings = DB_Settings()
 
 db_host = settings.db_host
 db_port = settings.db_port
@@ -24,7 +24,6 @@ class EngineConn:
 
     def get_connection(self):
         return self.engine.connect()
-
 
 def get_db():
     engine_conn = EngineConn()

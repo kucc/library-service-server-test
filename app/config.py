@@ -19,13 +19,14 @@ FB_MEM_COST = int(os.getenv("FB_MEM_COST"))
 
 from pydantic_settings  import BaseSettings
 
-class Settings(BaseSettings):
+class DB_Settings(BaseSettings):
     db_db: str = DB_DB
     db_host: str = DB_HOST
     db_password: str = DB_PASSWORD
     db_port: int = DB_PORT
     db_user: str = DB_USER
 
+class FB_Settings(BaseSettings):
     fb_salt_separator: str = FB_SALT_SEPARATOR
     fb_signer_key: str = FB_SIGNER_KEY
     fb_rounds: int = FB_ROUNDS
