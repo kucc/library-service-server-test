@@ -10,6 +10,7 @@ from jose import JWTError, jwt
 from database import get_db
 from internal.schemas.schema import *
 from internal.security import firebasescrypt
+from internal.custom_exception import *
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
