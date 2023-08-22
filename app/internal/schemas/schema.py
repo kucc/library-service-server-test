@@ -275,7 +275,7 @@ class TakeIn(BaseModel):
     expected_return_date: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 대출 이력 수정
 class TakeUpdate(TakeIn):
@@ -307,7 +307,7 @@ class BookRequestIn(BaseModel):
     reason : str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # 도서 구매 신청 수정 REQ
 class BookRequestUpdate(BookRequestIn):
@@ -359,7 +359,7 @@ class UserIn(BaseModel):
     password: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # USERS - 전체/개별 회원 정보 RES
 class UserOut(UserIn):
@@ -397,7 +397,7 @@ class LoanIn(BaseModel):
     loan_date : str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # USERS - 
 class LoanOut(LoanIn):
