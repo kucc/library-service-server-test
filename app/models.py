@@ -1,9 +1,7 @@
-from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger
+from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger, text, ForeignKey
 from sqlalchemy.dialects.mysql import INTEGER
-from sqlalchemy import text, ForeignKey
-from database import Base
 from sqlalchemy.orm import relationship
-
+from database import Base
 
 UnsignedInt = INTEGER()
 UnsignedInt = UnsignedInt.with_variant(INTEGER(unsigned=True), 'mysql')
@@ -130,5 +128,4 @@ class Category(Base):
     category_code = Column(String(5), nullable=False, unique=True)
     category_name = Column(String(30), nullable=False, unique =True)
     valid = Column(Boolean, nullable=False, default=1)
-    
     bookinfo = relationship("BookInfo", back_populates="category")
