@@ -265,12 +265,12 @@ async def delete_book_review(
 ):
     return delete_item(model=BookReviewIn, index=review_id, db=db)
 
-'''
+
 # 회원 도서 대출
 @router.post("/{user_id}/task/loan/{book_id}",
             response_model=List[LoanOut],
             status_code=status.HTTP_201_CREATED,
-            response_description="Success to create loan"
+            response_description="Success to loan the book"
             )
 async def create_loan(
     user_id: int,
@@ -280,7 +280,7 @@ async def create_loan(
 ):
     return create_item(Loan, req, db)
 
-
+'''
 # 회원 대출별 남은 대출 일자 조회
 @router.get("/users/{user_id}/task/loan/{loan_id}/loan-period",
             status_code=status.HTTP_200_OK,
