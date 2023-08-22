@@ -89,6 +89,13 @@ class BookInfoOut(BookInfoIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     rating: float
+
+# TODO
+#   *OutAdmin 삭제
+#   *Out 스키마에 valid 추가,
+#   api router(user용)에 response_model_exclude{"valid"} 추가하기
+# ADMIN - 도서 정보 등록/수정 RES
+class BookInfoOutAdmin(BookInfoOut):
     valid: bool
 
 
@@ -105,6 +112,13 @@ class HoldingID(BaseModel):
 class BookInfoList(BookInfoOut):
     holdings: List[HoldingID]
 
+# TODO
+#   *OutAdmin 삭제
+#   *Out 스키마에 valid 추가,
+#   api router(user용)에 response_model_exclude{"valid"} 추가하기
+# ADMIN - 도서 정보 리스트 조회 RES
+class BookInfoListAdmin(BookInfoOutAdmin):
+    holdings: List[HoldingID]
 
 # ADMIN - 소장 정보 조회 QUERY
 class BookHoldQuery:
@@ -145,12 +159,25 @@ class BookHoldOut(BookHoldIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     book_id: int
+
+
+# TODO
+#   *OutAdmin 삭제
+#   *Out 스키마에 valid 추가,
+#   api router(user용)에 response_model_exclude{"valid"} 추가하기
+class BookHoldOutAdmin(BookHoldOut):
     valid: bool
 
 # BOOKS - 개별 도서 정보 조회 RES
 class BookInfoByID(BookInfoOut):
     books: List[BookHoldOut]
 
+# TODO
+#   *OutAdmin 삭제
+#   *Out 스키마에 valid 추가,
+#   api router(user용)에 response_model_exclude{"valid"} 추가하기
+class BookInfoByIDAdmin(BookInfoOutAdmin):
+    books: List[BookHoldOutAdmin]
 
 # NOTICE - 전체/개별 공지 등록 REQ
 class NoticeIn(BaseModel):
@@ -182,6 +209,13 @@ class NoticeQuery:
         self.title = title
         self.author_id = author_id
 
+# TODO
+#   *OutAdmin 삭제
+#   *Out 스키마에 valid 추가,
+#   api router(user용)에 response_model_exclude{"valid"} 추가하기
+# ADMIN - 전체/개별 공지 조회 RES
+class NoticeOutAdmin(NoticeOut):
+    valid: bool
 
 # Books - 전체 도서 후기 조회 QUERY
 class BookReviewQuery:
@@ -219,6 +253,13 @@ class BookReviewOut(BookReviewIn):
     review_id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
+
+# TODO
+#   *OutAdmin 삭제
+#   *Out 스키마에 valid 추가,
+#   api router(user용)에 response_model_exclude{"valid"} 추가하기
+# ADMIN - 전체/개별 Review 조회 RES
+class BookReviewOutAdmin(BookReviewOut):
     valid: bool
 
 
@@ -275,7 +316,7 @@ class TakeIn(BaseModel):
     expected_return_date: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ADMIN - 대출 이력 수정
 class TakeUpdate(TakeIn):
@@ -307,8 +348,8 @@ class BookRequestIn(BaseModel):
     reason : str
 
     class Config:
-        orm_mode = True
-
+        from_attributes = True
+       
 # 도서 구매 신청 수정 REQ
 class BookRequestUpdate(BookRequestIn):
     user_id : int | None
@@ -359,7 +400,7 @@ class UserIn(BaseModel):
     password: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # USERS - 전체/개별 회원 정보 RES
 class UserOut(UserIn):
@@ -397,7 +438,7 @@ class LoanIn(BaseModel):
     loan_date : str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # USERS - 
 class LoanOut(LoanIn):
