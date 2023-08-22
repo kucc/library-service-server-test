@@ -1,6 +1,6 @@
 from pydantic import BaseModel, validator
 from typing import List
-from app.internal.custom_exception import InvalidDateFormatError
+from internal.custom_exception import InvalidDateFormatError
 import datetime
 
 # TODO :
