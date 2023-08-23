@@ -4,14 +4,14 @@ from fastapi import APIRouter, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from models import User
-from config import Settings
+from config import FB_Settings
 
 from internal.schemas.auth_dependency_schema import *
 from internal.crudf import *
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-setting = Settings()
+setting = FB_Settings()
 
 fb_salt_separator = setting.fb_salt_separator
 fb_signer_key = setting.fb_signer_key

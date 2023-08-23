@@ -1,9 +1,7 @@
-from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger
+from sqlalchemy import Column, Text, Integer, Boolean, String, TIMESTAMP, Date, DateTime, DECIMAL, SmallInteger, text, ForeignKey
 from sqlalchemy.dialects.mysql import INTEGER
-from sqlalchemy import text, ForeignKey
-from database import Base
 from sqlalchemy.orm import relationship
-
+from database import Base
 
 UnsignedInt = INTEGER()
 UnsignedInt = UnsignedInt.with_variant(INTEGER(unsigned=True), 'mysql')
@@ -22,7 +20,6 @@ class User(Base):
 
 class Setting(Base):
     __tablename__ = 'settings'
-
     setting_id = Column(Integer, primary_key=True)
     service_begin = Column(DateTime, nullable=False)
     service_end = Column(DateTime, nullable=False)
