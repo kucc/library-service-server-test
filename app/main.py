@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import admins, auth, books, notice, users
+from routers import depre_auth  # refactoring 후 삭제 예정
 
 app = FastAPI()
 
@@ -12,6 +13,8 @@ app.include_router(auth.router)
 app.include_router(books.router)
 app.include_router(notice.router)
 app.include_router(users.router)
+app.include_router(depre_auth.router)  # refactoring 후 삭제 예정
+
 
 # CORS 설정
 origins = [
