@@ -1,6 +1,4 @@
-from fastapi import HTTPException
-from starlette import status
-
+from fastapi import HTTPException, status
 
 class ForeignKeyValidationError(HTTPException):
     def __init__(self, detail:tuple):
