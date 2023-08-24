@@ -4,6 +4,7 @@ from internal.schemas.schema import *
 from models import *
 from internal.crudf import *
 from sqlalchemy.orm import Session, joinedload
+import datetime as dt
 
 
 router = APIRouter(prefix="/users", tags=["users"])#(prefix="/users", tags=["users"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
@@ -12,6 +13,7 @@ router = APIRouter(prefix="/users", tags=["users"])#(prefix="/users", tags=["use
 #  1. USERS에서 user_mode는 싹 다 True로 할 것
 #  2. response_model_exclude={"valid"} 모두 추가
 #  3. loan date는 프론트에서 입력, expected return date와 delay_days는 백엔드에서 계산
+# 전체 회원 정보 조회 함수는 테스트용이다. 다른 모든 기능이 완성되면 users.py에서 없앤다.
 
 # /users 핸들러 함수 (전체 회원 정보 조회)
 @router.get("",
@@ -28,7 +30,8 @@ async def get_user_info_list(
         o: OrderBy = Depends(),
         db: Session = Depends(get_db)
 ):
-    return get_list_of_item(model=User, skip=skip, limit=limit, user_mode=True, q=q, p=p, o=o, init_query=None, db=db)
+    return get_list_of_item(model=User, skip=skip, limit=limit, user_mode=True, q=q, p=p, o=o, init_query=None,
+                            db=db)
 
 
 # 개별 회원 정보 조회
@@ -64,8 +67,7 @@ async def update_user_info(
 @router.get("/{user_id}/loans/current",
             status_code=status.HTTP_200_OK,
             response_model=List[LoanOut],
-            response_description="Success to get the user's current loan information",
-            response_model_exclude={"valid"}
+            response_description="Success to get the user's current loan information"
             )
 async def get_user_current_loan_list(
     user_id: int,
@@ -85,8 +87,7 @@ async def get_user_current_loan_list(
 @router.get("/{user_id}/loans",
             status_code=status.HTTP_200_OK,
             response_model=List[LoanOut],
-            response_description="Success to get the user's all loan informations",
-            response_model_exclude={"valid"}
+            response_description="Success to get the user's all loan informations"
             )
 async def get_user_loan_list(
     user_id: int,
@@ -278,23 +279,55 @@ async def create_loan(
     req: LoanIn,
     db: Session = Depends(get_db)
 ):
+    req.loan_date = dt.datetime.now().strptime('%Y-%m-%d') # %H:%M:%S.%f
+    req.expected_return_date = (dt.datetime(req.loan_date) + dt.timedelta(days=7)).strptime('%Y-%m-%d')
     return create_item(Loan, req, db)
 
-'''
+
 # 회원 대출별 남은 대출 일자 조회
-@router.get("/users/{user_id}/task/loan/{loan_id}/loan-period",
+@router.get("/{user_id}/task/loan/{loan_id}/loan-period",
             status_code=status.HTTP_200_OK,
             response_model=List[LoanOut],
-            response_description="Success to get the user's all loan informations",
-            response_model_exclude={"valid",
-                                    }
+            response_description="Success to get remaining loan period of the loan"
             )
 async def get_user_loan_remaining_period(
     user_id: int,
     loan_id: int,
     db: Session = Depends(get_db)
 ):
-    init_query = get_item_by_column(model=Loan, columns={"user_id": user_id}, mode=False, db=db)
-    return get_list_of_item(model=Loan, skip=skip, limit=limit, user_mode=True, q=q, p=p, o=o,
-                            init_query=init_query, db=db)
-'''
+    init_query = get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
+    return (init_query[expected_return_date].strftime('%Y-%m-%d') - dt.datetime.now('%Y-%m-%d')).strptime('%d')
+
+
+# 회원 도서 대출 연장
+@router.patch("/{user_id}/task/extend/{loan_id}",
+            status_code=status.HTTP_200_OK,
+            response_model=List[LoanOut],
+            response_description="Success to renew the loan"
+            )
+async def update_renew_loan(
+    user_id: int,
+    loan_id: int,
+    req: LoanIn,
+    db: Session = Depends(get_db)
+):
+    req.extend_status = True
+    req.expected_return_date = (dt.datetime(req.expected_return_date) + dt.timedelta(days=7)).strptime('%Y-%m-%d')
+    return update_item(model=Loan, req=req, index=loan_id, db=db)
+
+
+# 회원 도서 대출 반납
+@router.patch("/{user_id}/task/return/{loan_id}",
+            status_code=status.HTTP_200_OK,
+            response_model=List[LoanOut],
+            response_description="Success to return the loan"
+            )
+async def update_return_loan(
+    user_id: int,
+    loan_id: int,
+    req: LoanIn,
+    db: Session = Depends(get_db)
+):
+    req.return_status = True
+    req.return_date = dt.datetime.now().strptime('%Y-%m-%d')
+    return update_item(model=Loan, req=req, index=loan_id, db=db)

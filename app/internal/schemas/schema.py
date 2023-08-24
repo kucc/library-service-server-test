@@ -8,8 +8,8 @@ import datetime
 
 # get_begin, get_end QUERY class
 class PeriodQuery(BaseModel):
-    get_begin: str | None
-    get_end: str | None
+    get_begin: str | None = None
+    get_end: str | None = None
 
     @validator('get_begin', 'get_end')
     def check_date_format(cls, value):
@@ -431,22 +431,22 @@ class LoanQuery:
         self.return_date = return_date
         self.delay_days = delay_days
 
-# USERS - 
+# USERS - 회원 도서 대출 REQ
 class LoanIn(BaseModel):
     book_id : int
     user_id : int
     loan_date : str
+    expected_return_date : str | None = None
+    extend_status : bool | None = False
+    return_status : bool | None = False
+    return_date : str | None = None
 
     class Config:
         from_attributes = True
 
-# USERS - 
+# USERS - 회원 도서 대출 RES
 class LoanOut(LoanIn):
     loan_id : int
-    extend_status : bool
-    expected_return_date : str
-    return_status : bool
-    return_date : str
     delay_days : int
     created_at : datetime.datetime
     updated_at : datetime.datetime
