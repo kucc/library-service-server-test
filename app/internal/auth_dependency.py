@@ -1,52 +1,103 @@
-from fastapi import FastAPI, Depends, HTTPException
+from datetime import datetime, timedelta
+from typing import Annotated, Union
+
+from fastapi import Depends, HTTPException
+from starlette import status
 from fastapi.security import OAuth2PasswordBearer
-import jwt
-from jwt import PyJWTError
-from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from jose import JWTError, jwt
 
-app = FastAPI()
+from database import get_db
+from internal.schemas.auth_schema import *
+from internal.security import firebasescrypt
+from internal.custom_exception import *
 
-# 토큰 생성 및 검증을 위한 키
-SECRET_KEY = "your-secret-key"
+# 아래 SECRET_KEY는 임시 키로 추후 openssl rand -hex 32로 secret key 생성해서 수정할 예정
+SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 3 # 3일
 
-# 예시용 사용자 데이터베이스
-fake_db = {}
+# create access token
+def create_access_token(sub: str, email: str, is_admin: bool):
+    data = {
+        "sub": sub,
+        "email": email,
+        "is_admin": is_admin,
+        "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
+    token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    access_token = Token(token=token, token_type="bearer")
+    return access_token
 
-# JWT를 검증하기 위한 함수
-def decode_token(token: str):
+
+
+'''
+
+# authenticate user
+
+# verify password
+def verify_password(
+        plain_password: str, 
+        password_hash: str, 
+        salt: str,
+        salt_separator: str,
+        signer_key: str,
+        rounds: int,
+        mem_cost: int
+        ) -> bool:
+    is_valid = firebasescrypt.verify_password(
+        password=plain_password,
+        known_hash=password_hash,
+        salt=salt,
+        salt_separator=salt_separator,
+        signer_key=signer_key,
+        rounds=rounds,
+        mem_cost=mem_cost
+    )
+    return is_valid
+
+# 비밀번호 해싱
+def get_hashed_password():
+    pass
+
+def get_user(email: str, db: Session = Depends(get_db)):
+    user = db.query(UserIn).filter(UserIn.email == email).first()
+    return user
+
+# create access token
+
+
+# verify access token
+
+# 현재 사용자 정보 가져오기
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        # sub: 토큰의 subject. 사용자의 identification을 넣는 곳.
+        # JWT는 user를 idenify하는데 사용될뿐 아니라, API에서 바로 동작할 수 있도록 해준다.
+        # car, blog post 등을 통해 identify하고, drive, edit 등의 권한을 부여할 수 있다.
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        token_data = TokenData(username=email)
+    except JWTError:
+        raise credentials_exception
+    user = get_user(username=token_data.username)
+    if user is None:
+        raise credentials_exception
+    return user
 
-# OAuth2PasswordBearer를 사용하여 Authorization 헤더에서 토큰을 추출
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+# 현재 활성화된 사용자 정보 가져오기
+async def get_current_active_user(
+        current_user: Annotated[UserIn, Depends(get_current_user)]
+):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
 
-# 데이터 모델
-class UserProfile(BaseModel):
-    username: str
-    email: str
-    full_name: str
-
-# 엔드포인트 정의
-@app.get("/{user_id}/profile")
-async def get_user_profile(user_id: str, token: str = Depends(oauth2_scheme)):
-    payload = decode_token(token)
-    if payload.get("sub") != user_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    if user_id not in fake_db:
-        raise HTTPException(status_code=404, detail="User not found")
-    return fake_db[user_id]
-
-@app.patch("/{user_id}/profile")
-async def update_user_profile(user_id: str, profile_update: UserProfile, token: str = Depends(oauth2_scheme)):
-    payload = decode_token(token)
-    if payload.get("sub") != user_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    if user_id not in fake_db:
-        raise HTTPException(status_code=404, detail="User not found")
-    update_data = profile_update.dict(exclude_unset=True)
-    fake_db[user_id].update(update_data)
-    return fake_db[user_id]
+'''

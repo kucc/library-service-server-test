@@ -18,47 +18,6 @@ fb_signer_key = setting.fb_signer_key
 fb_rounds = setting.fb_rounds
 fb_mem_cost = setting.fb_mem_cost
 
-# /auth 경로에 대한 핸들러 함수
-@router.get("")
-async def get_auths(
-        db: Session = Depends(get_db)
-):
-    auths = db.query(User).all()
-    if auths:
-        return auths
-    else:
-        raise HTTPException(status_code=404, detail="No auths found")
-
-# 로그인
-@router.post("/token",
-             status_code=status.HTTP_201_CREATED,
-             response_model=Token,
-             response_description="Success to login"
-             )
-async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(get_db)
-):
-    # 추후 authenticate_user()로 뺄지 고민
-    user = db.query(User).filter(User.email == form_data.username).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if not verify_password(form_data.password, user.password, user.salt, fb_salt_separator, fb_signer_key, fb_rounds, fb_mem_cost):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )  
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
-
 # 예시
 @router.get("/users/me, response_mode=User")
 async def read_users_me(

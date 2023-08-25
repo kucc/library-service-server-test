@@ -1,14 +1,19 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from typing import Union
+
+# Token 스키마
+class Token(BaseModel):
+    token: str
+    token_type: str
 
 # 일반 사용자와 관리자 공통의 필드가 정의된 스키마
 class AuthBaseUser(BaseModel):
     user_id: int
-    email: str | None = None
-    user_name: str | None = None
-    status: bool | None = None
-    valid: bool | None = None
-    # access_token: str
+    email: str
+    user_name: str
+    status: bool
+    valid: bool
+    access_token: Token
 
 # 일반 사용자 스키마
 class AuthUser(AuthBaseUser):
