@@ -25,8 +25,8 @@ async def get_auth():
 # 테스트
 # 일반 사용자: mjkweon17@korea.ac.kr
 # 관리자: thisisfortest@gmail.com
-@router.get("/{email}", response_model=AuthUserResponse, status_code=status.HTTP_200_OK, response_description="Get user info")
-async def get_user(email: str, db: Session = Depends(get_db)):
+@router.get("/{email}", response_model=AuthUserResponse, status_code=status.HTTP_200_OK, response_description="테스트 API")
+async def get_user_for_test(email: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
     
     if not user:
@@ -49,52 +49,41 @@ async def get_user(email: str, db: Session = Depends(get_db)):
         user_info["access_token"] = create_access_token(user.user_id, user.email, False)
         auth_response = AuthUserResponse(user=AuthUser(**user_info))
 
-    #auth_response.user.access_token = Token(token="123", token_type="bearer")
-
     return auth_response
 
 # 로그인
-'''
 @router.post("/token",
+             response_model=AuthUserResponse,
              status_code=status.HTTP_201_CREATED,
-             response_model=Token,
              response_description="Success to login"
              )
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db)
 ):
-    return "dtd"
-'''
-
-
-'''
-async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(get_db)
-):
-    # authenticate user
-    user = db.query(User).filter(User.email == form_data.username).first()
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if not verify_password(form_data.password, user.password, user.salt, fb_salt_separator, fb_signer_key, fb_rounds, fb_mem_cost):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )  
-    # create access token
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    # return token
-    return {"access_token": access_token, "token_type": "bearer"}
-'''
+        raise CredentialsException()
+
+    user_info = {
+        "user_id": user.user_id,
+        "email": user.email,
+        "user_name": user.user_name,
+        "status": user.status,
+        "valid": user.valid
+    }
+
+    if user.admin:
+        user_info["access_token"] = create_access_token(user.user_id, user.email, True)
+        user_info["admin_id"] = user.admin.admin_id
+        user_info["admin_status"] = user.admin.admin_status
+        auth_response = AuthUserResponse(user=AuthAdmin(**user_info))
+    else:
+        user_info["access_token"] = create_access_token(user.user_id, user.email, False)
+        auth_response = AuthUserResponse(user=AuthUser(**user_info))
+
+    return auth_response
+
 
 # 회원가입
 

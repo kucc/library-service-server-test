@@ -7,16 +7,20 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
-from config import ACCESS_TOKEN_Settings
+from config import ACCESS_TOKEN_Settings, FB_Settings
+
+from models import User
 
 from database import get_db
 from internal.schemas.auth_schema import *
 from internal.security import firebasescrypt
 from internal.custom_exception import *
 
-setting = ACCESS_TOKEN_Settings()
-SECRET_KEY = setting.secret_key
-ALGORITHM = setting.algorithm
+fb_settings = FB_Settings()
+
+access_token_setting = ACCESS_TOKEN_Settings()
+SECRET_KEY = access_token_setting.secret_key
+ALGORITHM = access_token_setting.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 3 # 3일
 
 # create access token
@@ -31,21 +35,15 @@ def create_access_token(sub: str, email: str, is_admin: bool):
     access_token = Token(token=token, token_type="bearer")
     return access_token
 
-
-
-'''
-
-# authenticate user
-
 # verify password
 def verify_password(
         plain_password: str, 
         password_hash: str, 
         salt: str,
-        salt_separator: str,
-        signer_key: str,
-        rounds: int,
-        mem_cost: int
+        salt_separator: str = fb_settings.fb_salt_separator,
+        signer_key: str = fb_settings.fb_signer_key,
+        rounds: int = fb_settings.fb_rounds,
+        mem_cost: int = fb_settings.fb_mem_cost
         ) -> bool:
     is_valid = firebasescrypt.verify_password(
         password=plain_password,
@@ -58,13 +56,19 @@ def verify_password(
     )
     return is_valid
 
-# 비밀번호 해싱
-def get_hashed_password():
-    pass
+# authenticate user
+def authenticate_user(db: Session, email: str, password: str):
+    user = db.query(User).filter(User.email == email).first()
+    if user and verify_password(password, user.password, user.salt):
+        return user
+    return None
 
-def get_user(email: str, db: Session = Depends(get_db)):
-    user = db.query(UserIn).filter(UserIn.email == email).first()
-    return user
+
+
+
+
+'''
+
 
 # create access token
 
