@@ -53,7 +53,7 @@ async def get_user_for_test(email: str, db: Session = Depends(get_db)):
 
 # 로그인
 @router.post("/token",
-             response_model=AuthUserResponse,
+             response_model=Token,
              status_code=status.HTTP_201_CREATED,
              response_description="Success to login"
              )
@@ -64,26 +64,31 @@ async def login(
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise CredentialsException()
-
-    user_info = {
-        "user_id": user.user_id,
-        "email": user.email,
-        "user_name": user.user_name,
-        "status": user.status,
-        "valid": user.valid
-    }
-
     if user.admin:
-        user_info["access_token"] = create_access_token(user.user_id, user.email, True)
-        user_info["admin_id"] = user.admin.admin_id
-        user_info["admin_status"] = user.admin.admin_status
-        auth_response = AuthUserResponse(user=AuthAdmin(**user_info))
+        access_token = create_access_token(user.user_id, user.email, True)
     else:
-        user_info["access_token"] = create_access_token(user.user_id, user.email, False)
-        auth_response = AuthUserResponse(user=AuthUser(**user_info))
+        access_token = create_access_token(user.user_id, user.email, False)
+    return access_token
 
-    return auth_response
+@router.get("/secure-data")
+async def get_secure_data(
+    decoded_token: dict = Depends(decode_token)
+):
+    return {"secure_data": "Hello, World!"}
 
+
+# 테스트
+@router.get("/{email}/profile")
+async def get_user_profile(
+    email: str, 
+    decoded_token: dict = Depends(decode_token), 
+    db: Session = Depends(get_db)
+):
+    if decoded_token.get("email") != email:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    if db.query(User).filter(User.email == email).first() is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"email": email, "user_id": decoded_token.get("sub"), "is_admin": decoded_token.get("is_admin")}
 
 # 회원가입
 
