@@ -7,14 +7,16 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
+from config import ACCESS_TOKEN_Settings
+
 from database import get_db
 from internal.schemas.auth_schema import *
 from internal.security import firebasescrypt
 from internal.custom_exception import *
 
-# 아래 SECRET_KEY는 임시 키로 추후 openssl rand -hex 32로 secret key 생성해서 수정할 예정
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-ALGORITHM = "HS256"
+setting = ACCESS_TOKEN_Settings()
+SECRET_KEY = setting.secret_key
+ALGORITHM = setting.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 3 # 3일
 
 # create access token
