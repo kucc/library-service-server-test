@@ -57,7 +57,7 @@ async def get_user_info(
             )
 async def update_user_info(
     user_id: int,
-    req: UserIn,
+    req: UserIn = Depends(),
     db: Session = Depends(get_db)
 ):
     return update_item(model=User, req=req, index=user_id, db=db)
@@ -188,7 +188,7 @@ async def get_user_book_request_list(
             )
 async def create_book_request(
     user_id: int,
-    req: BookRequestIn,
+    req: BookRequestIn = Depends(),
     db: Session = Depends(get_db)
 ):
     return create_item(BookRequest, req, db)
@@ -204,7 +204,7 @@ async def create_book_request(
 async def update_book_request(
     user_id: int,
     book_request_id: int,
-    req: BookRequestIn,
+    req: BookRequestIn = Depends(),
     db: Session = Depends(get_db)
 ):
     return update_item(model=BookRequest, req=req, index=book_request_id, db=db)
@@ -232,7 +232,7 @@ async def delete_book_request(
 async def create_book_review(
     user_id: int,
     book_info_id: int,
-    req: BookReviewIn,
+    req: BookReviewIn = Depends(),
     db: Session = Depends(get_db)
 ):
     return create_item(BookReview, req, db)
@@ -248,7 +248,7 @@ async def create_book_review(
 async def update_book_request(
     user_id: int,
     review_id: int,
-    req: BookReviewIn,
+    req: BookReviewIn = Depends(),
     db: Session = Depends(get_db)
 ):
     return update_item(model=BookReview, req=req, index=review_id, db=db)
@@ -269,26 +269,29 @@ async def delete_book_review(
 
 # 회원 도서 대출
 @router.post("/{user_id}/task/loan/{book_id}",
-            response_model=List[LoanOut],
+            response_model=LoanOut,
             status_code=status.HTTP_201_CREATED,
-            response_description="Success to loan the book"
+            response_description="Success to loan the book",
+            response_model_exclude={"valid"}
             )
 async def create_loan(
     user_id: int,
     book_id: int,
-    req: LoanIn,
+    req: LoanIn = Depends(),
     db: Session = Depends(get_db)
 ):
-    req.loan_date = dt.datetime.now().strptime('%Y-%m-%d') # %H:%M:%S.%f
-    req.expected_return_date = (dt.datetime(req.loan_date) + dt.timedelta(days=7)).strptime('%Y-%m-%d')
+    req.loan_date = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    req.expected_return_date = (dt.datetime.strptime(req.loan_date,'%Y-%m-%d %H:%M:%S') + dt.timedelta(days=7)).strftime('%Y-%m-%d')[:9]
+    req.loan_date = req.loan_date[:9]
     return create_item(Loan, req, db)
 
 
 # 회원 대출별 남은 대출 일자 조회
-@router.get("/{user_id}/task/loan/{loan_id}/loan-period",
+@router.get("/{user_id}/task/loan/loan-period{loan_id}",
             status_code=status.HTTP_200_OK,
             response_model=List[LoanOut],
-            response_description="Success to get remaining loan period of the loan"
+            response_description="Success to get remaining loan period of the loan",
+            response_model_exclude={"valid"}
             )
 async def get_user_loan_remaining_period(
     user_id: int,
@@ -296,38 +299,44 @@ async def get_user_loan_remaining_period(
     db: Session = Depends(get_db)
 ):
     init_query = get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
-    return (init_query[expected_return_date].strftime('%Y-%m-%d') - dt.datetime.now('%Y-%m-%d')).strptime('%d')
+    remaining_period = (dt.datetime.strptime(init_query.expected_return_date,'%Y-%m-%d %H:%M:%S') - dt.datetime.now('%Y-%m-%d')).strptime('%d')
+    return remaining_period
 
 
 # 회원 도서 대출 연장
 @router.patch("/{user_id}/task/extend/{loan_id}",
             status_code=status.HTTP_200_OK,
             response_model=List[LoanOut],
-            response_description="Success to renew the loan"
+            response_description="Success to renew the loan",
+            response_model_exclude={"valid"}
             )
 async def update_renew_loan(
     user_id: int,
     loan_id: int,
-    req: LoanIn,
+    req: LoanIn = Depends(),
     db: Session = Depends(get_db)
 ):
-    req.extend_status = True
-    req.expected_return_date = (dt.datetime(req.expected_return_date) + dt.timedelta(days=7)).strptime('%Y-%m-%d')
-    return update_item(model=Loan, req=req, index=loan_id, db=db)
+    if db.query(Loan).filter(Loan.loan_id == loan_id).one()[extend_status]:
+        return "You've already extended the loan. You can't extend twice."
+    else:
+        req.extend_status = True
+        req.expected_return_date = (dt.datetime(req.expected_return_date) + dt.timedelta(days=7)).strptime('%Y-%m-%d %H:%M:%S')[:9]
+        return update_item(model=Loan, req=req, index=loan_id, db=db)
 
 
 # 회원 도서 대출 반납
 @router.patch("/{user_id}/task/return/{loan_id}",
             status_code=status.HTTP_200_OK,
             response_model=List[LoanOut],
-            response_description="Success to return the loan"
+            response_description="Success to return the loan",
+            response_model_exclude={"valid"}
             )
 async def update_return_loan(
     user_id: int,
     loan_id: int,
-    req: LoanIn,
+    req: LoanIn = Depends(),
     db: Session = Depends(get_db)
 ):
     req.return_status = True
-    req.return_date = dt.datetime.now().strptime('%Y-%m-%d')
+    req.return_date = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')[:9]
     return update_item(model=Loan, req=req, index=loan_id, db=db)

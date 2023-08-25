@@ -123,6 +123,7 @@ class Loan(Base):
     delay_days = Column(UnsignedInt, nullable=False, default=0)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+    valid = Column(Boolean, nullable=False, default=1)
 
 class Category(Base):
     __tablename__ = 'category'

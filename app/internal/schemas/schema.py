@@ -433,9 +433,9 @@ class LoanQuery:
 
 # USERS - 회원 도서 대출 REQ
 class LoanIn(BaseModel):
-    book_id : int
+    book_id : int | None = None
     user_id : int
-    loan_date : str
+    loan_date : str | None = None
     expected_return_date : str | None = None
     extend_status : bool | None = False
     return_status : bool | None = False
@@ -446,7 +446,8 @@ class LoanIn(BaseModel):
 
 # USERS - 회원 도서 대출 RES
 class LoanOut(LoanIn):
-    loan_id : int
-    delay_days : int
-    created_at : datetime.datetime
-    updated_at : datetime.datetime
+    loan_id: int
+    delay_days: int
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    valid: bool
