@@ -18,6 +18,8 @@ class User(Base):
     password = Column(String(255), nullable=False)
     salt = Column(String(255), nullable=False)
 
+    admin = relationship("Admin", uselist=False, back_populates="user")
+
 class Admin(Base):
     __tablename__ = 'admin'
     admin_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
@@ -25,6 +27,8 @@ class Admin(Base):
     admin_status = Column(Boolean, nullable=False, default=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+
+    user = relationship("User", back_populates="admin")
 
 class Setting(Base):
     __tablename__ = 'settings'
