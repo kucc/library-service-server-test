@@ -6,6 +6,7 @@ from routers import admins, auth, books, notice, users
 
 app = FastAPI()
 
+
 # 라우터 등록
 app.include_router(admins.router)
 app.include_router(auth.router)

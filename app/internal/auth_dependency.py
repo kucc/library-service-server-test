@@ -23,6 +23,9 @@ SECRET_KEY = access_token_setting.secret_key
 ALGORITHM = access_token_setting.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 3 # 3일
 
+# OAuth2PasswordBearer를 사용하여 Authorization 헤더에서 토큰을 추출
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 # create access token
 def create_access_token(sub: str, email: str, is_admin: bool):
     data = {
@@ -64,7 +67,15 @@ def authenticate_user(db: Session, email: str, password: str):
     return None
 
 # verify access token
-
+def decode_token(token: str = Depends(oauth2_scheme)):
+    try:
+        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # decoded_token은 payload
+        return decoded_token
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
 
 
@@ -72,27 +83,10 @@ def authenticate_user(db: Session, email: str, password: str):
 
 
 
-# JWT를 검증하기 위한 함수
-def decode_token(token: str):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-# OAuth2PasswordBearer를 사용하여 Authorization 헤더에서 토큰을 추출
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 # 엔드포인트 정의
-@app.get("/{user_id}/profile")
-async def get_user_profile(user_id: str, token: str = Depends(oauth2_scheme)):
-    payload = decode_token(token)
-    if payload.get("sub") != user_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    if user_id not in fake_db:
-        raise HTTPException(status_code=404, detail="User not found")
-    return fake_db[user_id]
+
 
 @app.patch("/{user_id}/profile")
 async def update_user_profile(user_id: str, profile_update: UserProfile, token: str = Depends(oauth2_scheme)):
