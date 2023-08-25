@@ -18,6 +18,14 @@ class User(Base):
     password = Column(String(255), nullable=False)
     salt = Column(String(255), nullable=False)
 
+class Admin(Base):
+    __tablename__ = 'admin'
+    admin_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
+    admin_status = Column(Boolean, nullable=False, default=True)
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+
 class Setting(Base):
     __tablename__ = 'settings'
     setting_id = Column(Integer, primary_key=True)
@@ -28,14 +36,6 @@ class Setting(Base):
     extend_period = Column(UnsignedInt, nullable=False)
     max_request_count = Column(UnsignedInt, nullable=False)
     max_request_price = Column(UnsignedInt, nullable=False)
-
-class Admin(Base):
-    __tablename__ = 'admin'
-    admin_id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("user.user_id"), nullable=False)
-    admin_status = Column(Boolean, nullable=False, default=True)
-    created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
-    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
 
 class Book(Base):
     __tablename__ = 'book'
