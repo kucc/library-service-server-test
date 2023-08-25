@@ -63,6 +63,7 @@ def authenticate_user(db: Session, email: str, password: str):
         return user
     return None
 
+# verify access token
 
 
 
@@ -70,10 +71,42 @@ def authenticate_user(db: Session, email: str, password: str):
 '''
 
 
-# create access token
+
+# JWT를 검증하기 위한 함수
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+# OAuth2PasswordBearer를 사용하여 Authorization 헤더에서 토큰을 추출
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-# verify access token
+# 엔드포인트 정의
+@app.get("/{user_id}/profile")
+async def get_user_profile(user_id: str, token: str = Depends(oauth2_scheme)):
+    payload = decode_token(token)
+    if payload.get("sub") != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    if user_id not in fake_db:
+        raise HTTPException(status_code=404, detail="User not found")
+    return fake_db[user_id]
+
+@app.patch("/{user_id}/profile")
+async def update_user_profile(user_id: str, profile_update: UserProfile, token: str = Depends(oauth2_scheme)):
+    payload = decode_token(token)
+    if payload.get("sub") != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    if user_id not in fake_db:
+        raise HTTPException(status_code=404, detail="User not found")
+    update_data = profile_update.dict(exclude_unset=True)
+    fake_db[user_id].update(update_data)
+    return fake_db[user_id]
+
+
+
 
 # 현재 사용자 정보 가져오기
 async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
