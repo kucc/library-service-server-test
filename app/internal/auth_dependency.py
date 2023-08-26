@@ -24,7 +24,11 @@ ALGORITHM = access_token_setting.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 3 # 3일
 
 # OAuth2PasswordBearer를 사용하여 Authorization 헤더에서 토큰을 추출
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+# oauth_scheme을 사용하기 위한 dependency
+def get_oauth2_scheme():
+    return oauth2_scheme
 
 # create access token
 def create_access_token(sub: str, email: str, is_admin: bool):
@@ -66,71 +70,41 @@ def authenticate_user(db: Session, email: str, password: str):
         return user
     return None
 
-# verify access token
-def decode_token(token: str = Depends(oauth2_scheme)):
+# decode token
+def decode_token(token: str) -> dict:
     try:
         decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         # decoded_token은 payload
         return decoded_token
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
+        raise HTTPException(sstatus_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
     except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-
-
-'''
-
-
-
-
-
-# 엔드포인트 정의
-
-
-@app.patch("/{user_id}/profile")
-async def update_user_profile(user_id: str, profile_update: UserProfile, token: str = Depends(oauth2_scheme)):
-    payload = decode_token(token)
-    if payload.get("sub") != user_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    if user_id not in fake_db:
-        raise HTTPException(status_code=404, detail="User not found")
-    update_data = profile_update.dict(exclude_unset=True)
-    fake_db[user_id].update(update_data)
-    return fake_db[user_id]
-
-
-
-
-# 현재 사용자 정보 가져오기
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        # sub: 토큰의 subject. 사용자의 identification을 넣는 곳.
-        # JWT는 user를 idenify하는데 사용될뿐 아니라, API에서 바로 동작할 수 있도록 해준다.
-        # car, blog post 등을 통해 identify하고, drive, edit 등의 권한을 부여할 수 있다.
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        token_data = TokenData(username=email)
-    except JWTError:
-        raise credentials_exception
-    user = get_user(username=token_data.username)
-    if user is None:
-        raise credentials_exception
+# 사용자 정보 가져오기
+async def get_current_user(
+        token: Annotated[str, Depends(oauth2_scheme)],
+        db: Session = Depends(get_db)
+        ):
+    # token을 decode해서 user 정보 가져오기
+    user = decode_token(token)
+    # db에서 사용자 정보 조회
+    db_user = db.query(User).filter(User.email == user["email"]).first()
+    # user가 없으면 HTTPException 발생
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"}
+            )
+    # user가 맞으면 user 정보 반환
     return user
 
 # 현재 활성화된 사용자 정보 가져오기
-async def get_current_active_user(
-        current_user: Annotated[UserIn, Depends(get_current_user)]
-):
-    if current_user.disabled:
+async def get_current_active_user(current_user = Depends(get_current_user)):
+    # user가 active 상태가 아니면 HTTPException 발생 (status_code=400, message="Inactive user")
+    if current_user.is_active == False:
         raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
+    # active 상태면 user 정보(current_user) 반환
 
-'''
+    return current_user

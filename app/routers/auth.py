@@ -1,6 +1,6 @@
 # /auth 경로에 대한 핸들러 함수
 from fastapi import APIRouter, status, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 
 from models import User
 from config import FB_Settings
@@ -14,13 +14,52 @@ from sqlalchemy.orm import Session
 from database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 setting = FB_Settings()
 
 # /auth 핸들러 함수
 @router.get("/")
 async def get_auth():
     return {"message": "Hello, World!"}
+
+# 로그인
+@router.post("/token",
+             response_model=Token,
+             status_code=status.HTTP_201_CREATED,
+             response_description="Success to login"
+             )
+async def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Session = Depends(get_db)
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
+        raise CredentialsException()
+    if user.admin:
+        access_token = create_access_token(user.user_id, user.email, True)
+    else:
+        access_token = create_access_token(user.user_id, user.email, False)
+    return access_token
+
+# 로그인한 사용자 정보 가져오기
+@router.get("/secure-data")
+async def get_secure_data(
+    current_user: User = Depends(get_current_active_user)
+):
+    return current_user
+
+# 회원가입
+
+# 로그아웃
+
+# 비밀번호 변경
+
+# 회원 탈퇴
+
+##########################################################
+##########################################################
+########################테스트 코드########################
+##########################################################
+##########################################################
 
 # 테스트
 # 일반 사용자: mjkweon17@korea.ac.kr
@@ -51,32 +90,6 @@ async def get_user_for_test(email: str, db: Session = Depends(get_db)):
 
     return auth_response
 
-# 로그인
-@router.post("/token",
-             response_model=Token,
-             status_code=status.HTTP_201_CREATED,
-             response_description="Success to login"
-             )
-async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(get_db)
-):
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise CredentialsException()
-    if user.admin:
-        access_token = create_access_token(user.user_id, user.email, True)
-    else:
-        access_token = create_access_token(user.user_id, user.email, False)
-    return access_token
-
-@router.get("/secure-data")
-async def get_secure_data(
-    decoded_token: dict = Depends(decode_token)
-):
-    return {"secure_data": "Hello, World!"}
-
-
 # 테스트
 @router.get("/{email}/profile")
 async def get_user_profile(
@@ -86,21 +99,15 @@ async def get_user_profile(
 ):
     if decoded_token.get("email") != email:
         raise HTTPException(status_code=403, detail="Not authorized")
+    print(decoded_token)
     if db.query(User).filter(User.email == email).first() is None:
         raise HTTPException(status_code=404, detail="User not found")
     return {"email": email, "user_id": decoded_token.get("sub"), "is_admin": decoded_token.get("is_admin")}
 
-# 회원가입
-
-# 로그아웃
-
-# 비밀번호 변경
-
-# 회원 탈퇴
 
 
 
-'''
+''' deprecated - need refactoring and actual implementation
 
 # 회원가입
 @router.post("/register")
@@ -156,6 +163,4 @@ async def delete_user(req: UserIn, db: Session = Depends(get_db)):
     request body:
 
     """
-
-
 '''
