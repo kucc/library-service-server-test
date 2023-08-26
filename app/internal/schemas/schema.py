@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from typing import List
 from internal.custom_exception import InvalidDateFormatError
 import datetime
@@ -11,7 +11,7 @@ class PeriodQuery(BaseModel):
     get_begin: str | None = None
     get_end: str | None = None
 
-    @validator('get_begin', 'get_end')
+    @field_validator('get_begin', 'get_end')
     def check_date_format(cls, value):
         if value:
             try:
@@ -139,7 +139,7 @@ class BookHoldIn(BaseModel):
     book_status: int
     note: str | None = None
 
-    @validator('book_status')
+    @field_validator('book_status')
     def valid_status(cls, value):
         if value < 0 or value > 3:
             raise ValueError("book status is out of range!")
@@ -433,13 +433,10 @@ class LoanQuery:
 
 # USERS - 회원 도서 대출 REQ
 class LoanIn(BaseModel):
-    book_id : int | None = None
+    book_id : int
     user_id : int
-    loan_date : str | None = None
-    expected_return_date : str | None = None
-    extend_status : bool | None = False
-    return_status : bool | None = False
-    return_date : str | None = None
+    loan_date : datetime.datetime | None = datetime.datetime.now().replace(microsecond=0)
+    expected_return_date : datetime.datetime | None = datetime.datetime.combine((loan_date + datetime.timedelta(days=7)).date(),datetime.time.max).replace(microsecond=0)
 
     class Config:
         from_attributes = True
@@ -447,7 +444,18 @@ class LoanIn(BaseModel):
 # USERS - 회원 도서 대출 RES
 class LoanOut(LoanIn):
     loan_id: int
-    delay_days: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
     valid: bool
+
+class LoanExtend(LoanOut):
+    extend_status : bool
+    #expected_return_date : expected_return_date + 
+
+    @field_validator('extend_status')
+    def valid_status(cls, value):
+        if value is False:
+            value = True
+            return value
+        else:
+            raise ValueError("You've already extended the loan!")

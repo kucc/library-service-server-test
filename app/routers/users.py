@@ -4,7 +4,7 @@ from internal.schemas.schema import *
 from models import *
 from internal.crudf import *
 from sqlalchemy.orm import Session, joinedload
-import datetime as dt
+from datetime import datetime, date, time, timedelta
 
 
 router = APIRouter(prefix="/users", tags=["users"])#(prefix="/users", tags=["users"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
@@ -275,21 +275,21 @@ async def delete_book_review(
             response_model_exclude={"valid"}
             )
 async def create_loan(
-    user_id: int,
-    book_id: int,
-    req: LoanIn = Depends(),
+    req: LoanIn,
     db: Session = Depends(get_db)
 ):
-    req.loan_date = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    req.expected_return_date = (dt.datetime.strptime(req.loan_date,'%Y-%m-%d %H:%M:%S') + dt.timedelta(days=7)).strftime('%Y-%m-%d')[:9]
-    req.loan_date = req.loan_date[:9]
+    #req.user_id = user_id
+    #req.book_id = book_id
+    req.loan_date = datetime.now().replace(microsecond=0)
+    expected_return_date = req.loan_date + timedelta(days=7)
+    req.expected_return_date = datetime.combine(expected_return_date.date(),time.max).replace(microsecond=0)
     return create_item(Loan, req, db)
 
 
 # 회원 대출별 남은 대출 일자 조회
 @router.get("/{user_id}/task/loan/loan-period{loan_id}",
             status_code=status.HTTP_200_OK,
-            response_model=List[LoanOut],
+            #response_model=List[LoanOut],
             response_description="Success to get remaining loan period of the loan",
             response_model_exclude={"valid"}
             )
@@ -298,8 +298,10 @@ async def get_user_loan_remaining_period(
     loan_id: int,
     db: Session = Depends(get_db)
 ):
-    init_query = get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
-    remaining_period = (dt.datetime.strptime(init_query.expected_return_date,'%Y-%m-%d %H:%M:%S') - dt.datetime.now('%Y-%m-%d')).strptime('%d')
+    req = {'load_id' : loan_id, 'user_id' : user_id}
+    init_query = get_item_by_column(model=Loan, columns=req, mode=False, db=db)
+    #get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
+    remaining_period = (init_query[expected_return_date] - datetime.now().replace(microsecond=0)).date()
     return remaining_period
 
 
@@ -313,14 +315,17 @@ async def get_user_loan_remaining_period(
 async def update_renew_loan(
     user_id: int,
     loan_id: int,
-    req: LoanIn = Depends(),
+    req: LoanIn,
     db: Session = Depends(get_db)
 ):
-    if db.query(Loan).filter(Loan.loan_id == loan_id).one()[extend_status]:
-        return "You've already extended the loan. You can't extend twice."
+    # get_item_by_column 잘 작동되면 그걸로 바꾸고 user_id 쓰기
+    init_query = get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
+    if init_query[extend_status]:
+        return "You've already extended the loan!"
     else:
         req.extend_status = True
-        req.expected_return_date = (dt.datetime(req.expected_return_date) + dt.timedelta(days=7)).strptime('%Y-%m-%d %H:%M:%S')[:9]
+        expected_return_date = init_query[expected_return_date] + timedelta(days=8)
+        req.expected_return_date = datetime.combine(expected_return_date.date(),time.max).replace(microsecond=0)
         return update_item(model=Loan, req=req, index=loan_id, db=db)
 
 
@@ -334,9 +339,16 @@ async def update_renew_loan(
 async def update_return_loan(
     user_id: int,
     loan_id: int,
-    req: LoanIn = Depends(),
+    req: LoanIn,
     db: Session = Depends(get_db)
 ):
-    req.return_status = True
-    req.return_date = dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')[:9]
-    return update_item(model=Loan, req=req, index=loan_id, db=db)
+    # get_item_by_column 잘 작동되면 그걸로 바꾸고 user_id 쓰기
+    init_query = get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
+    if init_query.return_status:
+        return "You've already returned the book!"
+    else:
+        req.return_status = True
+        req.return_date = datetime.now().replace(microsecond=0)
+        delay_days = (init_query[expected_return_date] - req.return_date).strptime('%d')
+        req.delay_days = int(delay_days)
+        return update_item(model=Loan, req=req, index=loan_id, db=db)
