@@ -4,6 +4,7 @@ from internal.schemas.schema import *
 from internal.crudf import *
 from models import *
 from sqlalchemy.orm import Session, joinedload
+from typing import List
 
 # TODO :
 #   CRUD 함수 적용하고 테스트하기
@@ -62,8 +63,10 @@ async def get_book_info(
         db: Session = Depends(get_db)
 ):
 
-    query = db.query(BookInfo).options(joinedload(BookInfo.books))
-    book_info = query.filter(BookInfo.book_info_id == book_info_id).first()
+    book_info = db.query(BookInfo)\
+        .options(joinedload(BookInfo.books))\
+        .filter(BookInfo.book_info_id == book_info_id)\
+        .first()
 
     if book_info:
         return book_info
@@ -105,7 +108,7 @@ async def delete_book_info(
     return delete_item(BookInfo, book_info_id, db)
 
 # 소장 정보 전체 조회
-@router.get('/book-holdings/',
+@router.get('/book-holdings',
             status_code=status.HTTP_200_OK,
             response_model=List[BookHoldOut],
             response_description="Success to get whole book-holdings list"
@@ -173,7 +176,7 @@ async def delete_book_holding(
 
 # 카테고리 전체 조회
 @router.get('/book-category',
-            response_model=CategoryOut,
+            response_model=List[CategoryOut],
             status_code=status.HTTP_200_OK,
             response_description="Success to get the list of categories"
             )
@@ -181,7 +184,7 @@ async def get_category(
         q: CategoryQuery = Depends(),
         db: Session = Depends(get_db),
 ):
-    return get_item_by_column(model=Category, mode=True, columns=q.__dict__, db=db)
+    return get_list_of_item(model=Category, q=q, db=db)
 
 # 카테고리 개별 조회
 @router.get('/book-category/{category_id}',
@@ -195,8 +198,6 @@ async def get_category(
 ):
     return get_item_by_id(model=Category, index=category_id, db=db, user_mode=False)
 
-
-# TODO : 여기서부터 테스트 필요
 # 카테고리 등록
 @router.post('/book-category',
              response_model=CategoryOut,
@@ -204,7 +205,7 @@ async def get_category(
              response_description="Success to post the category"
              )
 async def create_category(
-        req: CategoryIn = Depends(),
+        req: CategoryIn,
         db: Session = Depends(get_db)
 ):
     return create_item(Category, req, db)
@@ -218,7 +219,7 @@ async def create_category(
              )
 async def update_category(
         category_id: int,
-        req: CategoryUpdate = Depends(),
+        req: CategoryUpdate,
         db: Session = Depends(get_db)
 ):
     return update_item(model=Category,req=req, index=category_id, db=db)
@@ -270,7 +271,7 @@ async def get_notice(
             response_description="Success to post the notice"
              )
 async def create_notice(
-        req : NoticeIn = Depends(),
+        req : NoticeIn,
         db : Session = Depends(get_db)
 ):
     return create_item(model=Notice, req=req, db=db)
@@ -283,15 +284,14 @@ async def create_notice(
               )
 async def update_notice(
         notice_id : int,
-        req : NoticeUpdate = Depends(),
+        req : NoticeUpdate,
         db: Session = Depends(get_db)
 ):
     return update_item(model=Notice, req=req, index=notice_id, db=db)
 
 # 공지 삭제
 @router.delete("/notice/{notice_id}",
-              status_code=status.HTTP_200_OK,
-              response_model=NoticeOut,
+              status_code=status.HTTP_204_NO_CONTENT,
               response_description="Success to patch the notice"
               )
 async def delete_notice(
@@ -300,6 +300,7 @@ async def delete_notice(
 ):
     return delete_item(Notice, notice_id, db)
 
+# TODO : 여기서부터 테스트 필요
 # 대출 전체 조회  /task
 @router.get("/task",
             status_code = status.HTTP_200_OK,
@@ -351,6 +352,7 @@ async def delete_task(
 ):
     return delete_item(model=Loan, index=loan_id, db=db)
 
+# TODO : 여기서부터 테스트 필요
 # 전체 도서 후기 조회
 @router.get("/reviews",
             status_code=status.HTTP_200_OK,
@@ -424,7 +426,7 @@ async def get_book_request(
 # 도서 구매 신청 내역 수정
 @router.patch("/book-request/{book_request_id}",
               status_code= status.HTTP_200_OK,
-              response_model=TakeOut,
+              response_model=BookRequestOut,
               response_description="Success to patch the book-request information"
               )
 async def update_book_request(
@@ -432,7 +434,7 @@ async def update_book_request(
         req : BookRequestUpdate,
         db: Session = Depends(get_db)
 ):
-    return update_item(model=Loan, req=req, index=request_id, db=db)
+    return update_item(model=BookRequest, req=req, index=request_id, db=db)
 
 # 도서 구매 신청 내역 삭제
 @router.delete("/book-request/{book_request_id}",
@@ -443,4 +445,4 @@ async def get_review(
         request_id: int,
         db: Session = Depends(get_db)
 ):
-    return delete_item(model=BookReview, index=request_id, db=db)
+    return delete_item(model=BookRequest, index=request_id, db=db)
