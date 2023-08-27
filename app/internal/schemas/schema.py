@@ -147,7 +147,6 @@ class BookHoldOut(BookHoldIn):
     book_id: int
     valid: bool
 
-
 # BOOKS - 개별 도서 정보 조회 RES
 class BookInfoByID(BookInfoOut):
     books: List[BookHoldOut]
