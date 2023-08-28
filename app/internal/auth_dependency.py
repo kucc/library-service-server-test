@@ -19,8 +19,8 @@ from internal.custom_exception import *
 fb_settings = FB_Settings()
 
 access_token_setting = ACCESS_TOKEN_Settings()
-SECRET_KEY = access_token_setting.secret_key
-ALGORITHM = access_token_setting.algorithm
+JWT_SECRET_KEY = access_token_setting.jwt_secret_key
+JWT_ALGORITHM = access_token_setting.jwt_algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 3 # 3일
 
 # OAuth2PasswordBearer를 사용하여 Authorization 헤더에서 토큰을 추출
@@ -38,7 +38,7 @@ def create_access_token(sub: str, email: str, is_admin: bool):
         "is_admin": is_admin,
         "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     }
-    token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    token = jwt.encode(data, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     access_token = Token(token=token, token_type="bearer")
     return access_token
 
@@ -73,7 +73,7 @@ def authenticate_user(db: Session, email: str, password: str):
 # decode token
 def decode_token(token: str) -> dict:
     try:
-        decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        decoded_token = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
         # decoded_token은 payload
         return decoded_token
     except jwt.ExpiredSignatureError:

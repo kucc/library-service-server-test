@@ -14,8 +14,8 @@ class DB_Settings(BaseSettings):
 
 # access token
 class ACCESS_TOKEN_Settings(BaseSettings):
-    secret_key: str = os.getenv("SECRET_KEY")
-    algorithm: str = os.getenv("ALGORITHM")
+    jwt_secret_key: str = os.getenv("JWT_SECRET_KEY")
+    jwt_algorithm: str = os.getenv("JWT_ALGORITHM")
 
 # firebase authentication & authorization
 class FB_Settings(BaseSettings):
