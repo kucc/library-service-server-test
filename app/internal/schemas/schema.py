@@ -89,13 +89,6 @@ class BookInfoOut(BookInfoIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     rating: float
-
-# TODO
-#   *OutAdmin 삭제
-#   *Out 스키마에 valid 추가,
-#   api router(user용)에 response_model_exclude{"valid"} 추가하기
-# ADMIN - 도서 정보 등록/수정 RES
-class BookInfoOutAdmin(BookInfoOut):
     valid: bool
 
 
@@ -112,13 +105,6 @@ class HoldingID(BaseModel):
 class BookInfoList(BookInfoOut):
     holdings: List[HoldingID]
 
-# TODO
-#   *OutAdmin 삭제
-#   *Out 스키마에 valid 추가,
-#   api router(user용)에 response_model_exclude{"valid"} 추가하기
-# ADMIN - 도서 정보 리스트 조회 RES
-class BookInfoListAdmin(BookInfoOutAdmin):
-    holdings: List[HoldingID]
 
 # ADMIN - 소장 정보 조회 QUERY
 class BookHoldQuery:
@@ -159,25 +145,11 @@ class BookHoldOut(BookHoldIn):
     created_at: datetime.datetime
     updated_at: datetime.datetime
     book_id: int
-
-
-# TODO
-#   *OutAdmin 삭제
-#   *Out 스키마에 valid 추가,
-#   api router(user용)에 response_model_exclude{"valid"} 추가하기
-class BookHoldOutAdmin(BookHoldOut):
     valid: bool
 
 # BOOKS - 개별 도서 정보 조회 RES
 class BookInfoByID(BookInfoOut):
     books: List[BookHoldOut]
-
-# TODO
-#   *OutAdmin 삭제
-#   *Out 스키마에 valid 추가,
-#   api router(user용)에 response_model_exclude{"valid"} 추가하기
-class BookInfoByIDAdmin(BookInfoOutAdmin):
-    books: List[BookHoldOutAdmin]
 
 # NOTICE - 전체/개별 공지 등록 REQ
 class NoticeIn(BaseModel):
@@ -208,14 +180,6 @@ class NoticeQuery:
                  ):
         self.title = title
         self.author_id = author_id
-
-# TODO
-#   *OutAdmin 삭제
-#   *Out 스키마에 valid 추가,
-#   api router(user용)에 response_model_exclude{"valid"} 추가하기
-# ADMIN - 전체/개별 공지 조회 RES
-class NoticeOutAdmin(NoticeOut):
-    valid: bool
 
 # Books - 전체 도서 후기 조회 QUERY
 class BookReviewQuery:
@@ -253,13 +217,6 @@ class BookReviewOut(BookReviewIn):
     review_id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
-
-# TODO
-#   *OutAdmin 삭제
-#   *Out 스키마에 valid 추가,
-#   api router(user용)에 response_model_exclude{"valid"} 추가하기
-# ADMIN - 전체/개별 Review 조회 RES
-class BookReviewOutAdmin(BookReviewOut):
     valid: bool
 
 
@@ -276,7 +233,7 @@ class CategoryUpdate(CategoryIn):
     category_code: str | None
     category_name: str | None
 
-# ADMIN - 카테고리 삭제
+# ADMIN - 카테고리 RES
 class CategoryOut(CategoryIn):
     category_id: int
     valid: bool
@@ -286,7 +243,6 @@ class CategoryQuery:
     def __init__(self,
                 category_code : str | None = None,
                 category_name : str | None = None,
-
             ):
         self.category_code = category_code
         self.category_name = category_name
@@ -435,27 +391,38 @@ class LoanQuery:
 class LoanIn(BaseModel):
     book_id : int
     user_id : int
-    loan_date : datetime.datetime | None = datetime.datetime.now().replace(microsecond=0)
-    expected_return_date : datetime.datetime | None = datetime.datetime.combine((loan_date + datetime.timedelta(days=7)).date(),datetime.time.max).replace(microsecond=0)
+    loan_date : datetime.datetime
+    expected_return_date : datetime.datetime
 
     class Config:
         from_attributes = True
 
-# USERS - 회원 도서 대출 RES
-class LoanOut(LoanIn):
+# USERS - 회원 도서 대출 연장 REQ
+class LoanExtend(LoanIn):
+    extend_status : bool
+    expected_return_date : datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+# USERS - 회원 도서 대출 반납 REQ
+class LoanReturn(LoanExtend):
+    return_status : bool
+    return_date : datetime.datetime
+    delay_days : int
+
+    @field_validator('delay_days')
+    def valid_status(cls, value):
+        if value < 0:
+            raise ValueError("delay days must be nonnegative integer!")
+        return value
+    
+    class Config:
+        from_attributes = True
+
+# USERS - 회원 도서 대출, 연장, 반납 RES
+class LoanOut(LoanReturn):
     loan_id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
     valid: bool
-
-class LoanExtend(LoanOut):
-    extend_status : bool
-    #expected_return_date : expected_return_date + 
-
-    @field_validator('extend_status')
-    def valid_status(cls, value):
-        if value is False:
-            value = True
-            return value
-        else:
-            raise ValueError("You've already extended the loan!")
