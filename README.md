@@ -58,7 +58,7 @@ If you would like to contribute to this project or if you have any questions or 
 | Language | Python 3.10 |
 | Database/ORM | MySQL, Naver Cloud Platform - Cloud DB for MySQL, SQLAlchemy |
 | CI/CD | Naver Cloud Platform - Server, Docker, Docker Hub, GitHub Actions |
-| ETC | Swagger, Notion, Figma, Discord |
+| ETC | Swagger, Notion, Figma, Discord, [ERDCloud](https://www.erdcloud.com/d/nSaQY4NjMcnwcQ3CM), MySQL Workbench |
 
 ## Getting Started
 
