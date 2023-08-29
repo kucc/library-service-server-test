@@ -3,7 +3,7 @@ from typing import Union
 
 # Token 스키마
 class Token(BaseModel):
-    token: str
+    access_token: str
     token_type: str
 
 # 일반 사용자와 관리자 공통의 필드가 정의된 스키마
