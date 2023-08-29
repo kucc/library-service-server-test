@@ -192,6 +192,7 @@ async def create_book_request(
     req: BookRequestIn = Depends(),
     db: Session = Depends(get_db)
 ):
+    req.user_id = user_id
     return create_item(BookRequest, req, db)
 
 
@@ -208,6 +209,7 @@ async def update_book_request(
     req: BookRequestIn = Depends(),
     db: Session = Depends(get_db)
 ):
+    req.user_id = user_id
     return update_item(model=BookRequest, req=req, index=book_request_id, db=db)
 
 
@@ -236,6 +238,8 @@ async def create_book_review(
     req: BookReviewIn = Depends(),
     db: Session = Depends(get_db)
 ):
+    req.user_id = user_id
+    req.book_info_id = book_info_id
     return create_item(BookReview, req, db)
 
 
@@ -252,6 +256,7 @@ async def update_book_request(
     req: BookReviewIn = Depends(),
     db: Session = Depends(get_db)
 ):
+    req.user_id = user_id
     return update_item(model=BookReview, req=req, index=review_id, db=db)
 
 
