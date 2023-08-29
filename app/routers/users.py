@@ -5,6 +5,7 @@ from models import *
 from internal.crudf import *
 from sqlalchemy.orm import Session, joinedload
 from datetime import datetime, date, time, timedelta
+import math
 
 
 router = APIRouter(prefix="/users", tags=["users"])#(prefix="/users", tags=["users"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
@@ -169,7 +170,7 @@ async def get_user_book_request_list(
 # 특정 도서 신청 정보 조회
 @router.get("/book-requests/{book_request_id}",
             status_code=status.HTTP_200_OK,
-            response_model=List[BookRequestOut],
+            response_model=BookRequestOut,
             response_description="Success to get the book-request information",
             response_model_exclude={"valid"}
             )
@@ -182,7 +183,7 @@ async def get_user_book_request_list(
 
 # 회원 도서 신청
 @router.post("/{user_id}/book-requests",
-            response_model=List[BookRequestOut],
+            response_model=BookRequestOut,
             status_code=status.HTTP_201_CREATED,
             response_description="Success to create the book-request information"
             )
@@ -197,7 +198,7 @@ async def create_book_request(
 # 회원 도서 신청 수정
 @router.patch("/{user_id}/book-requests/{book_request_id}",
             status_code=status.HTTP_200_OK,
-            response_model=List[BookRequestOut],
+            response_model=BookRequestOut,
             response_description="Success to patch the user's book-request information",
             response_model_exclude={"valid"}
             )
@@ -225,7 +226,7 @@ async def delete_book_request(
 
 # 회원 도서 후기 작성
 @router.post("/{user_id}/reviews/{book_info_id}",
-            response_model=List[BookReviewOut],
+            response_model=BookReviewOut,
             status_code=status.HTTP_201_CREATED,
             response_description="Success to create the user's book review"
             )
@@ -240,7 +241,7 @@ async def create_book_review(
 
 # 회원 도서 후기 수정
 @router.patch("/{user_id}/reviews/{review_id}",
-            response_model=List[BookReviewOut],
+            response_model=BookReviewOut,
             status_code=status.HTTP_201_CREATED,
             response_description="Success to patch the user's book review",
             response_model_exclude={"valid"}
@@ -275,11 +276,13 @@ async def delete_book_review(
             response_model_exclude={"valid"}
             )
 async def create_loan(
+    user_id: int,
+    book_id: int,
     req: LoanIn,
     db: Session = Depends(get_db)
 ):
-    #req.user_id = user_id
-    #req.book_id = book_id
+    req.user_id = user_id
+    req.book_id = book_id
     req.loan_date = datetime.now().replace(microsecond=0)
     expected_return_date = req.loan_date + timedelta(days=7)
     req.expected_return_date = datetime.combine(expected_return_date.date(),time.max).replace(microsecond=0)
@@ -289,42 +292,42 @@ async def create_loan(
 # 회원 대출별 남은 대출 일자 조회
 @router.get("/{user_id}/task/loan/loan-period{loan_id}",
             status_code=status.HTTP_200_OK,
-            #response_model=List[LoanOut],
-            response_description="Success to get remaining loan period of the loan",
-            response_model_exclude={"valid"}
+            response_description="Success to get remaining loan period of the loan"
             )
 async def get_user_loan_remaining_period(
     user_id: int,
     loan_id: int,
     db: Session = Depends(get_db)
 ):
-    req = {'load_id' : loan_id, 'user_id' : user_id}
-    init_query = get_item_by_column(model=Loan, columns=req, mode=False, db=db)
-    #get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
-    remaining_period = (init_query[expected_return_date] - datetime.now().replace(microsecond=0)).date()
-    return remaining_period
+    init_query = db.query(Loan).filter(Loan.user_id == user_id, Loan.loan_id == loan_id).one()
+    remaining_period = (init_query.expected_return_date - datetime.now().replace(microsecond=0)).total_seconds() / 86400.0 # 86400초 = 1일
+    if remaining_period < 0:
+        return "반납 기한을 %d일 초과하였습니다." % int(math.floor(remaining_period))
+    else:
+        if math.trunc(remaining_period) == 0:
+            return "반납 당일입니다! 오후 11시 59분까지 반납하세요."
+        return "반납 기한이 %d일 남았습니다." %  math.trunc(remaining_period)
 
 
 # 회원 도서 대출 연장
 @router.patch("/{user_id}/task/extend/{loan_id}",
             status_code=status.HTTP_200_OK,
-            response_model=List[LoanOut],
+            response_model=LoanOut,
             response_description="Success to renew the loan",
             response_model_exclude={"valid"}
             )
 async def update_renew_loan(
     user_id: int,
     loan_id: int,
-    req: LoanIn,
+    req: LoanExtend,
     db: Session = Depends(get_db)
 ):
-    # get_item_by_column 잘 작동되면 그걸로 바꾸고 user_id 쓰기
-    init_query = get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
-    if init_query[extend_status]:
+    init_query = db.query(Loan).filter(Loan.user_id == user_id, Loan.loan_id == loan_id).one()
+    if init_query.extend_status is True:
         return "You've already extended the loan!"
     else:
         req.extend_status = True
-        expected_return_date = init_query[expected_return_date] + timedelta(days=8)
+        expected_return_date = init_query.expected_return_date + timedelta(days=8)
         req.expected_return_date = datetime.combine(expected_return_date.date(),time.max).replace(microsecond=0)
         return update_item(model=Loan, req=req, index=loan_id, db=db)
 
@@ -332,23 +335,23 @@ async def update_renew_loan(
 # 회원 도서 대출 반납
 @router.patch("/{user_id}/task/return/{loan_id}",
             status_code=status.HTTP_200_OK,
-            response_model=List[LoanOut],
+            response_model=LoanOut,
             response_description="Success to return the loan",
             response_model_exclude={"valid"}
             )
 async def update_return_loan(
     user_id: int,
     loan_id: int,
-    req: LoanIn,
+    req: LoanReturn,
     db: Session = Depends(get_db)
 ):
-    # get_item_by_column 잘 작동되면 그걸로 바꾸고 user_id 쓰기
-    init_query = get_item_by_id(model=Loan, index=loan_id, db=db, user_mode=True)
-    if init_query.return_status:
+    init_query = db.query(Loan).filter(Loan.user_id == user_id, Loan.loan_id == loan_id).one()
+    if init_query.return_status is True:
         return "You've already returned the book!"
     else:
         req.return_status = True
         req.return_date = datetime.now().replace(microsecond=0)
-        delay_days = (init_query[expected_return_date] - req.return_date).strptime('%d')
-        req.delay_days = int(delay_days)
+        delay_days = (req.return_date - init_query.expected_return_date).total_seconds() / 86400.0
+        if delay_days > 0:
+            req.delay_days = math.ceil(delay_days)
         return update_item(model=Loan, req=req, index=loan_id, db=db)
