@@ -18,8 +18,8 @@ setting = FB_Settings()
 
 # /auth 핸들러 함수
 @router.get("/")
-async def get_auth():
-    return {"message": "Hello, World!"}
+async def print_token(token: str = Depends(oauth2_scheme)):
+    return token
 
 # 로그인
 @router.post("/token",
@@ -40,12 +40,14 @@ async def login(
         access_token = create_access_token(user.user_id, user.email, False)
     return access_token
 
+
 # 로그인한 사용자 정보 가져오기
 @router.get("/secure-data")
 async def get_secure_data(
     current_user: User = Depends(get_current_active_user)
 ):
     return current_user
+
 
 # 회원가입
 
@@ -89,23 +91,6 @@ async def get_user_for_test(email: str, db: Session = Depends(get_db)):
         auth_response = AuthUserResponse(user=AuthUser(**user_info))
 
     return auth_response
-
-# 테스트
-@router.get("/{email}/profile")
-async def get_user_profile(
-    email: str, 
-    decoded_token: dict = Depends(decode_token), 
-    db: Session = Depends(get_db)
-):
-    if decoded_token.get("email") != email:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    print(decoded_token)
-    if db.query(User).filter(User.email == email).first() is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return {"email": email, "user_id": decoded_token.get("sub"), "is_admin": decoded_token.get("is_admin")}
-
-
-
 
 ''' deprecated - need refactoring and actual implementation
 
