@@ -116,7 +116,7 @@ def get_item_by_column(*,
                        mode: bool,
                        db):
     for column_name, value in columns.items() :
-        if value:
+        if value != None:
             if column_name in model.__table__.columns:
                 query = db.query(model).filter(getattr(model, column_name) == value)
                 query = query.filter(model.valid)

@@ -302,6 +302,7 @@ class BookRequestIn(BaseModel):
     book_title : str
     request_link : str
     reason : str
+    price : int
 
     class Config:
         from_attributes = True

@@ -4,17 +4,12 @@ from internal.schemas.schema import *
 from models import *
 from internal.crudf import *
 from sqlalchemy.orm import Session, joinedload
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, time, timedelta
 import math
 
 
-router = APIRouter(prefix="/users", tags=["users"])#(prefix="/users", tags=["users"],responses={201 : {"description" : "Success"}, 400 : {"description" : "Fail"}})
+router = APIRouter(prefix="/users", tags=["users"])
 
-# TODO - 완성 시까지
-#  1. USERS에서 user_mode는 싹 다 True로 할 것
-#  2. response_model_exclude={"valid"} 모두 추가
-#  3. loan date는 프론트에서 입력, expected return date와 delay_days는 백엔드에서 계산
-# 전체 회원 정보 조회 함수는 테스트용이다. 다른 모든 기능이 완성되면 users.py에서 없앤다.
 
 # /users 핸들러 함수 (전체 회원 정보 조회)
 @router.get("",
@@ -68,27 +63,22 @@ async def update_user_info(
 @router.get("/{user_id}/loans/current",
             status_code=status.HTTP_200_OK,
             response_model=List[LoanOut],
-            response_description="Success to get the user's current loan information"
+            response_description="Success to get the user's current loan information",
+            response_model_exclude={"valid"}
             )
 async def get_user_current_loan_list(
     user_id: int,
-    skip: int | None = 0,
-    limit: int | None = 10,
-    q: LoanQuery = Depends(),
-    p: PeriodQuery = Depends(),
-    o: OrderBy = Depends(),
     db: Session = Depends(get_db)
 ):
-    init_query = get_item_by_column(model=Loan, columns={"user_id": user_id, "return_status": False}, mode=False, db=db)
-    return get_list_of_item(model=Loan, skip=skip, limit=limit, user_mode=True, q=q, p=p, o=o,
-                            init_query=init_query, db=db)
+    return get_item_by_column(model=Loan, columns={"user_id": user_id, "return_status": False}, mode=True, db=db)
 
 
 # 회원 전체 기간 대출 목록 조회
 @router.get("/{user_id}/loans",
             status_code=status.HTTP_200_OK,
             response_model=List[LoanOut],
-            response_description="Success to get the user's all loan informations"
+            response_description="Success to get the user's all loan informations",
+            response_model_exclude={"valid"}
             )
 async def get_user_loan_list(
     user_id: int,
@@ -134,16 +124,9 @@ async def get_user_review_list(
             )
 async def get_user_current_book_request_list(
     user_id: int,
-    skip: int | None = 0,
-    limit: int | None = 10,
-    q: BookRequestQuery = Depends(),
-    p: PeriodQuery = Depends(),
-    o: OrderBy = Depends(),
     db: Session = Depends(get_db)
 ):
-    init_query = get_item_by_column(model=BookRequest, columns={"user_id": user_id, "processing_status": 0}, mode=False, db=db)
-    return get_list_of_item(model=BookRequest, skip=skip, limit=limit, user_mode=True, q=q, p=p, o=o,
-                            init_query=init_query, db=db)
+    return get_item_by_column(model=BookRequest, columns={"user_id": user_id, "processing_status": 0}, mode=True, db=db)
 
 
 # 회원 전체 기간 도서 신청 목록 조회
@@ -192,7 +175,7 @@ async def create_book_request(
     req: BookRequestIn = Depends(),
     db: Session = Depends(get_db)
 ):
-    req.user_id = user_id
+    #req.user_id = user_id
     return create_item(BookRequest, req, db)
 
 
@@ -209,7 +192,7 @@ async def update_book_request(
     req: BookRequestIn = Depends(),
     db: Session = Depends(get_db)
 ):
-    req.user_id = user_id
+    #req.user_id = user_id
     return update_item(model=BookRequest, req=req, index=book_request_id, db=db)
 
 
@@ -238,8 +221,8 @@ async def create_book_review(
     req: BookReviewIn = Depends(),
     db: Session = Depends(get_db)
 ):
-    req.user_id = user_id
-    req.book_info_id = book_info_id
+    #req.user_id = user_id
+    #req.book_info_id = book_info_id
     return create_item(BookReview, req, db)
 
 
@@ -256,7 +239,7 @@ async def update_book_request(
     req: BookReviewIn = Depends(),
     db: Session = Depends(get_db)
 ):
-    req.user_id = user_id
+    #req.user_id = user_id
     return update_item(model=BookReview, req=req, index=review_id, db=db)
 
 
@@ -295,7 +278,7 @@ async def create_loan(
 
 
 # 회원 대출별 남은 대출 일자 조회
-@router.get("/{user_id}/task/loan/loan-period{loan_id}",
+@router.get("/{user_id}/task/loan/loan-period/{loan_id}",
             status_code=status.HTTP_200_OK,
             response_description="Success to get remaining loan period of the loan"
             )
