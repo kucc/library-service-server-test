@@ -13,7 +13,6 @@ class AuthBaseUser(BaseModel):
     user_name: str
     status: bool
     valid: bool
-    access_token: Token
 
 # 일반 사용자 스키마
 class AuthUser(AuthBaseUser):

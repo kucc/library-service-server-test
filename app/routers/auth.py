@@ -42,12 +42,11 @@ async def login(
 
 
 # 로그인한 사용자 정보 가져오기
-@router.get("/secure-data")
+@router.get("/secure-data", response_model=AuthUserResponse, status_code=status.HTTP_200_OK, response_description="Success to get current active user information")
 async def get_secure_data(
-    current_user: User = Depends(get_current_active_user)
+    current_active_user: User = Depends(get_current_active_user)
 ):
-    return current_user
-
+    return current_active_user
 
 # 회원가입
 
@@ -57,40 +56,8 @@ async def get_secure_data(
 
 # 회원 탈퇴
 
-##########################################################
-##########################################################
-########################테스트 코드########################
-##########################################################
-##########################################################
 
-# 테스트
-# 일반 사용자: mjkweon17@korea.ac.kr
-# 관리자: thisisfortest@gmail.com
-@router.get("/{email}", response_model=AuthUserResponse, status_code=status.HTTP_200_OK, response_description="테스트 API")
-async def get_user_for_test(email: str, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == email).first()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    user_info = {
-        "user_id": user.user_id,
-        "email": user.email,
-        "user_name": user.user_name,
-        "status": user.status,
-        "valid": user.valid
-    }
 
-    if user.admin:
-        user_info["access_token"] = create_access_token(user.user_id, user.email, True)
-        user_info["admin_id"] = user.admin.admin_id
-        user_info["admin_status"] = user.admin.admin_status
-        auth_response = AuthUserResponse(user=AuthAdmin(**user_info))
-    else:
-        user_info["access_token"] = create_access_token(user.user_id, user.email, False)
-        auth_response = AuthUserResponse(user=AuthUser(**user_info))
-
-    return auth_response
 
 ''' deprecated - need refactoring and actual implementation
 
@@ -149,3 +116,36 @@ async def delete_user(req: UserIn, db: Session = Depends(get_db)):
 
     """
 '''
+
+
+
+
+
+# 테스트
+# 일반 사용자: mjkweon17@korea.ac.kr
+# 관리자: thisisfortest@gmail.com
+@router.get("/{email}", response_model=AuthUserResponse, status_code=status.HTTP_200_OK, response_description="테스트 API")
+async def get_user_for_test(email: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user_info = {
+        "user_id": user.user_id,
+        "email": user.email,
+        "user_name": user.user_name,
+        "status": user.status,
+        "valid": user.valid
+    }
+
+    if user.admin:
+        user_info["access_token"] = create_access_token(user.user_id, user.email, True)
+        user_info["admin_id"] = user.admin.admin_id
+        user_info["admin_status"] = user.admin.admin_status
+        auth_response = AuthUserResponse(user=AuthAdmin(**user_info))
+    else:
+        user_info["access_token"] = create_access_token(user.user_id, user.email, False)
+        auth_response = AuthUserResponse(user=AuthUser(**user_info))
+
+    return auth_response

@@ -100,11 +100,30 @@ async def get_current_user(
     return user
 
 # 현재 활성화된 사용자 정보 가져오기
-async def get_current_active_user(current_user = Depends(get_current_user)):
-    # user가 active 상태가 아니면 HTTPException 발생 (status_code=400, message="Inactive user")
+async def get_current_active_user(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
 
-    #if current_user.is_active == False:
-    #    raise HTTPException(status_code=400, detail="Inactive user")
+    user = db.query(User).filter(User.email == current_user['email']).first()
+    # 만약 user의 status가 0이면 HTTPException 발생 (status_code=400, detail="Inactive user")
+    if user.status == False:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    # 만약 user의 valid가 0이면 HTTPException 발생 (status_code=400, detail="Inactive user")
+    if user.valid == False:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    
+    user_info = {
+        "user_id": user.user_id,
+        "email": user.email,
+        "user_name": user.user_name,
+        "status": user.status,
+        "valid": user.valid
+    }
+
+    if user.admin and user.admin.admin_status == True:
+        user_info["admin_id"] = user.admin.admin_id
+        user_info["admin_status"] = user.admin.admin_status
+        current_active_user = AuthUserResponse(user=AuthAdmin(**user_info))
+    else:
+        current_active_user = AuthUserResponse(user=AuthUser(**user_info))
+
     # active 상태면 user 정보(current_user) 반환
-
-    return current_user
+    return current_active_user
