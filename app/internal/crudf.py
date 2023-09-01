@@ -86,9 +86,6 @@ def valid_referenced_key(model, item, db):
                 refer = get_item_by_column(model=model, columns={attr: getattr(item, attr)}, mode=True, db=db)
             except NoResultFound:
                 raise ForeignKeyValidationError((attr, item[attr]))
-            else:
-                if not refer:
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
     return True
 
 # TODO : ADMIN GET BOOK-INFO에 대한 함수 정의
@@ -119,7 +116,7 @@ def get_item_by_column(*,
                        mode: bool,
                        db):
     for column_name, value in columns.items() :
-        if value:
+        if value != None:
             if column_name in model.__table__.columns:
                 query = db.query(model).filter(getattr(model, column_name) == value)
                 query = query.filter(model.valid)
@@ -128,7 +125,42 @@ def get_item_by_column(*,
         return result
     return query
 
+# GET
+# LIMIT NONE - > LIMIT X
+def get_list_of_item(*,
+                     model,
+                     skip: int | None = 0,
+                     limit: int | None = None,
+                     use_update_at: bool | None = False,
+                     user_mode: bool | None = True,
+                     q,
+                     p: Any | None = None,
+                     o: Any | None = None,
+                     init_query: Any | None = None,
+                     db,
+                     ):
+    if init_query is None:
+        init_query = db.query(model)
 
+    query = filters_by_query(init_query, model, q)
+
+    if p:
+        query = filter_by_period(query=query, model=model, p=p, use_updated_at=use_update_at)
+    if user_mode:
+        query = query.filter(model.valid)
+    if o:
+        query = orders_by_query(query, model, o)
+    print(limit)
+    if limit:
+        query = query.offset(skip).limit(limit)
+    else:
+        query = query.offset(skip)
+    result = query.all()
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    db.close()
+
+    return result
 
 # CREATE
 def create_item(model, req, db):
@@ -145,35 +177,6 @@ def create_item(model, req, db):
     finally:
         db.close()
     return item
-
-# GET
-def get_list_of_item(*,
-                     model,
-                     skip: int,
-                     limit: int,
-                     use_update_at: bool | None = False,
-                     user_mode: bool | None = True,
-                     q,
-                     p,
-                     o,
-                     init_query: Any | None = None,
-                     db,
-                     ):
-    if init_query is None:
-        init_query = db.query(model)
-    query = filters_by_query(init_query, model, q)
-    query = filter_by_period(query=query, model=model, p=p, use_updated_at=use_update_at)
-    if user_mode:
-        query = query.filter(model.valid)
-    query = orders_by_query(query, model, o)
-    result = query.offset(skip).limit(limit).all()
-    if not result:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-
-    db.close()
-
-    return result
-
 
 # update
 def update_item(*,
@@ -196,6 +199,9 @@ def update_item(*,
         db.add(item)
         db.commit()
         db.refresh(item)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,                            detail="Duplicate category_code or category_names are not allowed.")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

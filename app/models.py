@@ -91,7 +91,7 @@ class BookRequest(Base):
     request_link = Column(Text, nullable=False)
     reason = Column(Text, nullable=False)
     processing_status = Column(SmallInteger, nullable=False, default=0)
-    price = Column(UnsignedInt)
+    price = Column(UnsignedInt, nullable=False)
     valid = Column(Boolean, nullable=False, default=1)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
@@ -116,10 +116,11 @@ class Loan(Base):
     extend_status = Column(Boolean, nullable=False, default=0)
     expected_return_date = Column(DateTime, nullable=False)
     return_status = Column(Boolean, nullable=False, default=0)
-    return_date = Column(DateTime)
+    return_date = Column(DateTime, nullable=False, default="1000-01-01 00:00:00")
     delay_days = Column(UnsignedInt, nullable=False, default=0)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"))
+    valid = Column(Boolean, nullable=False, default=1)
 
 class Category(Base):
     __tablename__ = 'category'
