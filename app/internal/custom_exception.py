@@ -1,6 +1,4 @@
-from fastapi import HTTPException
-from starlette import status
-
+from fastapi import HTTPException, status
 
 class ForeignKeyValidationError(HTTPException):
     def __init__(self, detail:tuple):
@@ -15,5 +13,6 @@ class InvalidDateFormatError(HTTPException):
         super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid date format. Dates should be in the format 'YYYY-MM-DD'.")
 
 class CredentialsException(HTTPException):
+    # Incorrect username or password
     def __init__(self):
         super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
