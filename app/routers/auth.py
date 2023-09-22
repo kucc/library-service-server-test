@@ -1,78 +1,65 @@
-### internal/auth.py
-
-from fastapi import APIRouter, status, Depends
+# /auth 경로에 대한 핸들러 함수
+from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
 from models import User
-from config import Settings
+from config import FB_Settings
 
-from internal.schemas.auth_dependency_schema import *
-from internal.crudf import *
+from typing import Annotated
+
+from internal.schemas.auth_schema import *
+from internal.auth_dependency import *
+
+from sqlalchemy.orm import Session
+from database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-setting = Settings()
+setting = FB_Settings()
 
-fb_salt_separator = setting.fb_salt_separator
-fb_signer_key = setting.fb_signer_key
-fb_rounds = setting.fb_rounds
-fb_mem_cost = setting.fb_mem_cost
-
-# /auth 경로에 대한 핸들러 함수
-@router.get("")
-async def get_auths(
-        db: Session = Depends(get_db)
-):
-    auths = db.query(User).all()
-    if auths:
-        return auths
-    else:
-        raise HTTPException(status_code=404, detail="No auths found")
+# /auth 핸들러 함수
+@router.get("/")
+async def print_token(token: str = Depends(oauth2_scheme)):
+    return token
 
 # 로그인
 @router.post("/token",
-             status_code=status.HTTP_201_CREATED,
              response_model=Token,
+             status_code=status.HTTP_201_CREATED,
              response_description="Success to login"
              )
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db)
 ):
-    # 추후 authenticate_user()로 뺄지 고민
-    user = db.query(User).filter(User.email == form_data.username).first()
+    user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if not verify_password(form_data.password, user.password, user.salt, fb_salt_separator, fb_signer_key, fb_rounds, fb_mem_cost):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )  
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+        raise CredentialsException()
+    if user.admin:
+        access_token = create_access_token(user.user_id, user.email, True)
+    else:
+        access_token = create_access_token(user.user_id, user.email, False)
+    return access_token
 
-# 예시
-@router.get("/users/me, response_mode=User")
-async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)]
+
+# 로그인한 사용자 정보 가져오기
+@router.get("/secure-data", response_model=AuthUserResponse, status_code=status.HTTP_200_OK, response_description="Success to get current active user information")
+async def get_secure_data(
+    current_active_user: User = Depends(get_current_active_user)
 ):
-    return current_user
+    return current_active_user
 
-# 예시
-@router.get("/users/me/items/")
-async def read_own_items(
-    current_user: Annotated[User, Depends(get_current_user)]
-):
-    return [{"item_id": "Foo", "owner": current_user.username}]
+# 회원가입
 
+# 로그아웃
+
+# 비밀번호 변경
+
+# 회원 탈퇴
+
+
+
+
+''' deprecated - need refactoring and actual implementation
 
 # 회원가입
 @router.post("/register")
@@ -128,3 +115,4 @@ async def delete_user(req: UserIn, db: Session = Depends(get_db)):
     request body:
 
     """
+'''
