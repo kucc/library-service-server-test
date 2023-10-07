@@ -48,32 +48,20 @@ async def get_secure_data(
 ):
     return current_active_user
 
-# 회원가입
-
 # 로그아웃
+@router.post("/logout")
+async def logout(db: Session = Depends(get_db)):
+    return {"message": "Logout successfully"}
 
+# 회원가입
 # 비밀번호 변경
-
 # 회원 탈퇴
 
-
-
-
-''' deprecated - need refactoring and actual implementation
+''' deprecated - need refactoring or actual implementation
 
 # 회원가입
 @router.post("/register")
 async def register(req: UserIn, db: Session = Depends(get_db)):
-
-    # ★★★★★ 테스트 중 ★★★★★
-
-    # salt.py 사용해야 함!
-    # [8:] 잊지 말 것
-
-    # 현재 테스트 중인 부분
-        # firebase에 회원가입하면 random으로 개인 고유의 salt 생성됨
-        # firebase의 salt 생성법은 공개되지 않음
-        # 최대한 비슷한 방식으로 
 
     """Creates a new user and returns a token
     firebase에 성공적으로 회원가입되면 그때 실행될 API
@@ -86,12 +74,14 @@ async def register(req: UserIn, db: Session = Depends(get_db)):
     - password:
 
     return token
-    """
 
-# 로그아웃
-@router.post("/logout")
-async def logout(req: UserIn, db: Session = Depends(get_db)):
-    return {"message": "Logout successfully"}
+    salt.py 사용해야 함!
+    [8:] 잊지 말 것
+
+    firebase에 회원가입하면 random으로 개인 고유의 salt 생성됨
+    firebase의 salt 생성법은 공개되지 않음
+    최대한 비슷한 방식으로 
+    """
 
 # 비밀번호 변경
 @router.post("/password")
