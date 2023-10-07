@@ -151,7 +151,7 @@ async def get_user_book_request_list(
 
 
 # 특정 도서 신청 정보 조회
-@router.get("/book-requests/{book_request_id}",
+@router.get("/{user_id}/book-requests/{book_request_id}",
             status_code=status.HTTP_200_OK,
             response_model=BookRequestOut,
             response_description="Success to get the book-request information",
