@@ -444,3 +444,6 @@ async def get_review(
         db: Session = Depends(get_db)
 ):
     return delete_item(model=BookReview, index=request_id, db=db)
+
+# 사용자 정보 수정
+# 사용자 정보 삭제
